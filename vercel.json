@@ -1,0 +1,41 @@
+{
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/home",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/about",
+        "destination": "/about.html"
+      },
+      {
+        "source": "/contact",
+        "destination": "/contact.html"
+      },
+      {
+        "source": "/services",
+        "destination": "/index.html#services"
+      },
+      {
+        "source": "/works",
+        "destination": "/index.html#works"
+      },
+      {
+        "source": "/works/:slug",
+        "destination": "/index.html#works/:slug"
+      },
+      {
+        "source": "/request-a-project",
+        "destination": "/request-a-project.html"
+      },
+      {
+        "source": "/legal",
+        "destination": "/legal.html"
+      }
+    ]
+  }
+  
