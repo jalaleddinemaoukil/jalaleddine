@@ -1,0 +1,696 @@
+---
+/**
+ * Fixed Preloader - Image fully visible + Text properly displayed
+ */
+
+const PRELOADER_CONFIG = {
+  ENTER_MS: 1100,
+  PROGRESS_MS: 1400,
+  EXIT_MS: 850,
+  MAX_TOTAL_MS: 7000,
+  SESSION_KEY: "preloaderShown_v7",
+  SKIP_ON_CLIENT_SWAPS: true,
+} as const;
+
+const CONFIG_JSON = JSON.stringify(PRELOADER_CONFIG);
+---
+
+<!-- Font Preload (Merriweather) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap"
+/>
+<link rel="preload" as="image" href="/images/profile.webp" />
+
+<div
+  id="preloader"
+  class="fixed inset-0 h-screen overflow-hidden z-[10002] opacity-100"
+  style="background: linear-gradient(165deg, #000 0%, #0a0a0a 100%); font-family: 'Merriweather', serif; contain: layout paint style; transform: translateZ(0);"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Loading content"
+  data-preloader
+  data-config={CONFIG_JSON}
+>
+  <!-- Progress Bar -->
+  <div class="absolute left-0 top-0 z-10 h-[3px] w-full" aria-hidden="true">
+    <div class="relative h-full w-full overflow-hidden bg-white/[0.06]">
+      <div
+        class="absolute inset-0 origin-left"
+        style="transform: scaleX(0); background: linear-gradient(90deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.95) 50%, rgba(255,255,255,1) 100%); will-change: transform;"
+        data-progress-bar
+      ></div>
+      <div
+        class="absolute -right-[60px] top-1/2 h-[120%] w-[60px] opacity-0"
+        style="transform: translateY(-50%) translateZ(0); background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%); will-change: opacity, transform; filter: blur(8px);"
+        data-progress-glow
+      ></div>
+    </div>
+  </div>
+
+  <!-- Stage -->
+  <div class="absolute inset-0 grid place-items-center pointer-events-none" aria-hidden="true">
+    <div
+      class="absolute inset-0 opacity-0"
+      style="background: radial-gradient(ellipse 80% 60% at 50% 45%, rgba(255,255,255,0.03) 0%, transparent 70%); will-change: opacity;"
+      data-stage-bg
+    ></div>
+
+    <!-- Frame - FIXED: Image container -->
+    <div
+      class="relative aspect-square"
+      style="width: min(25rem, 68vw); transform: translateZ(0); filter: drop-shadow(0 20px 60px rgba(0,0,0,0.6));"
+      data-frame
+    >
+      <div class="relative h-full w-full overflow-hidden rounded-sm">
+        <!-- FIXED: Changed scale from 1.45 to 1.0 so image is fully visible -->
+        <img
+          data-img
+          src="/images/profile.webp"
+          srcset="/images/profile.webp 1x"
+          sizes="(max-width: 768px) 68vw, 25rem"
+          width="800"
+          height="800"
+          decoding="async"
+          fetchpriority="high"
+          alt="Portfolio preview"
+          class="block h-full w-full object-cover opacity-100"
+          style="transform: scale(1.0) translateZ(0); filter: blur(0px) brightness(0.92); will-change: transform, opacity, filter;"
+        />
+        <div
+          class="absolute inset-0 opacity-100"
+          style="background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.25) 100%); will-change: opacity;"
+          data-frame-overlay
+        ></div>
+      </div>
+      <div
+        class="absolute inset-0 bg-black"
+        style="transform-origin: 50% 100%; transform: scaleY(1); will-change: transform;"
+        data-wipe
+      ></div>
+    </div>
+
+    <!-- Decorative accents -->
+    <div
+      class="absolute top-[28%] h-px w-[140%] left-1/2 opacity-0"
+      style="transform: translateX(-50%) scaleX(0); transform-origin: 50% 50%; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%); will-change: transform, opacity;"
+      data-accent-top
+    ></div>
+    <div
+      class="absolute bottom-[24%] h-px w-[140%] left-1/2 opacity-0"
+      style="transform: translateX(-50%) scaleX(0); transform-origin: 50% 50%; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%); will-change: transform, opacity;"
+      data-accent-bottom
+    ></div>
+  </div>
+
+  <!-- Text Stack - FIXED: Text visibility -->
+  <div
+    class="absolute left-1/2 w-full flex flex-col items-center pointer-events-none"
+    style="bottom: clamp(1.5rem, 6.5vh, 3.5rem); transform: translateX(-50%) translateZ(0); gap: clamp(0.75rem, 2.2vh, 1.75rem);"
+    data-text-stack
+  >
+    <!-- Name -->
+    <div 
+      class="w-full grid place-items-center overflow-hidden" 
+      style="transform: translateZ(0);" 
+      data-name
+    >
+      <span
+        data-name-text
+        aria-hidden="true"
+        class="text-white uppercase font-semibold whitespace-nowrap"
+        style="font-size: clamp(1.85rem, 8.5vw, 7.5rem); letter-spacing: clamp(-0.015em, 0.5vw, 0.025em); padding: 0 clamp(0.75rem, 3vw, 2rem); line-height: 1; text-shadow: 0 2px 18px rgba(0,0,0,0.6), 0 0 40px rgba(255,255,255,0.08); font-family: 'Merriweather', serif;"
+      >
+        JALAL EDDINE
+      </span>
+    </div>
+
+    <!-- Copy -->
+    <div
+      class="max-w-[94%] px-4 text-white/90 uppercase text-center overflow-hidden pointer-events-none"
+      style="width: min(88%, 580px); letter-spacing: 0.08em; line-height: 1.5; font-family: 'Merriweather', serif; transform: translateZ(0);"
+      data-copy
+    >
+      <p
+        data-copy-text
+        class="m-0 font-normal"
+        style="font-size: clamp(0.7rem, 2vw, 0.88rem); text-shadow: 0 1px 8px rgba(0,0,0,0.4);"
+      >
+        I transform complex technical ideas into modern cloud solutions and
+        high-performance web applications that solve real-world problems.
+      </p>
+    </div>
+  </div>
+
+  <!-- Screen Reader Status -->
+  <div class="sr-only" role="status" aria-live="polite" data-sr-status>
+    Loading
+  </div>
+</div>
+
+<style is:global>
+  @layer utilities {
+    .mask {
+      @apply inline-block overflow-hidden align-bottom;
+    }
+    .move {
+      @apply inline-block opacity-0;
+      transform: translateY(120%) translateZ(0);
+      will-change: transform, opacity;
+    }
+    .space {
+      @apply inline-block w-[0.36em];
+    }
+  }
+
+  @media (max-width: 520px) {
+    [data-frame] {
+      width: min(80vw, 23rem) !important;
+    }
+    [data-text-stack] {
+      bottom: clamp(1.25rem, 5vh, 2.5rem) !important;
+      gap: clamp(0.6rem, 1.8vh, 1.2rem) !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-progress-bar],
+    [data-progress-glow],
+    [data-wipe],
+    [data-img],
+    .move,
+    [data-accent-top],
+    [data-accent-bottom],
+    [data-stage-bg] {
+      will-change: auto !important;
+    }
+  }
+</style>
+
+<script type="module">
+  const $ = (sel, root = document) => root.querySelector(sel);
+
+  const PRELOADER_ID = "preloader";
+  const GLOBAL_FLAG = "__preloader_running__";
+
+  function getNavType() {
+    try {
+      const nav = performance.getEntriesByType("navigation")[0];
+      if (nav && typeof nav.type === "string") return nav.type;
+    } catch {}
+    return "navigate";
+  }
+
+  function hardResetStates(preloader) {
+    preloader.style.display = "block";
+    preloader.style.opacity = "1";
+    preloader.style.transform = "translateY(0) translateZ(0)";
+    preloader.style.willChange = "auto";
+    preloader.removeAttribute("aria-hidden");
+
+    const bar = $("[data-progress-bar]", preloader);
+    const glow = $("[data-progress-glow]", preloader);
+    const wipe = $("[data-wipe]", preloader);
+    const img = $("[data-img]", preloader);
+    const overlay = $("[data-frame-overlay]", preloader);
+    const stageBg = $("[data-stage-bg]", preloader);
+    const accentTop = $("[data-accent-top]", preloader);
+    const accentBottom = $("[data-accent-bottom]", preloader);
+
+    if (bar) bar.style.transform = "scaleX(0)";
+    if (glow) glow.style.opacity = "0";
+    if (wipe) {
+      wipe.style.transformOrigin = "50% 100%";
+      wipe.style.transform = "scaleY(1)";
+    }
+    // FIXED: Start at scale 1.0 (fully visible)
+    if (img) {
+      img.style.opacity = "1";
+      img.style.transform = "scale(1.0) translateZ(0)";
+      img.style.filter = "blur(0px) brightness(0.92)";
+    }
+    if (overlay) overlay.style.opacity = "1";
+    if (stageBg) stageBg.style.opacity = "0";
+    if (accentTop) {
+      accentTop.style.transform = "translateX(-50%) scaleX(0)";
+      accentTop.style.opacity = "0";
+    }
+    if (accentBottom) {
+      accentBottom.style.transform = "translateX(-50%) scaleX(0)";
+      accentBottom.style.opacity = "0";
+    }
+  }
+
+  function clearAndRestoreText(node, key) {
+    if (!node) return "";
+    if (!node.dataset[key]) node.dataset[key] = (node.textContent || "").trim();
+    node.textContent = node.dataset[key];
+    return node.dataset[key];
+  }
+
+  function splitLettersMasked(node) {
+    if (!node) return [];
+    const text = (node.textContent || "").trim();
+    node.textContent = "";
+
+    const movers = [];
+    const frag = document.createDocumentFragment();
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === " ") {
+        frag.appendChild(document.createTextNode(" "));
+        continue;
+      }
+
+      const mask = document.createElement("span");
+      mask.className = "mask";
+
+      const move = document.createElement("span");
+      move.className = "move";
+      move.textContent = ch;
+
+      mask.appendChild(move);
+      frag.appendChild(mask);
+      movers.push(move);
+    }
+
+    node.appendChild(frag);
+    return movers;
+  }
+
+  function splitWordsMasked(node) {
+    if (!node) return [];
+    const text = (node.textContent || "").trim();
+    node.textContent = "";
+
+    const movers = [];
+    const frag = document.createDocumentFragment();
+    const words = text.split(/\s+/).filter(Boolean);
+
+    for (let i = 0; i < words.length; i++) {
+      const mask = document.createElement("span");
+      mask.className = "mask";
+
+      const move = document.createElement("span");
+      move.className = "move";
+      move.textContent = words[i];
+
+      mask.appendChild(move);
+      frag.appendChild(mask);
+      movers.push(move);
+
+      if (i !== words.length - 1) {
+        const space = document.createElement("span");
+        space.className = "space";
+        frag.appendChild(space);
+      }
+    }
+
+    node.appendChild(frag);
+    return movers;
+  }
+
+  const animateSafe = (node, keyframes, options) => {
+    if (!node || !node.animate) return null;
+    try {
+      return node.animate(keyframes, options);
+    } catch {
+      return null;
+    }
+  };
+
+  const wait = async (anim) => {
+    if (!anim) return;
+    try {
+      await anim.finished;
+    } catch {}
+  };
+
+  function runPreloaderOnce() {
+    const preloader = document.getElementById(PRELOADER_ID);
+    if (!preloader) return;
+
+    if (window[GLOBAL_FLAG]) return;
+    window[GLOBAL_FLAG] = true;
+
+    const CONFIG = JSON.parse(preloader.getAttribute("data-config") || "{}");
+
+    hardResetStates(preloader);
+
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const saveData = !!(conn && conn.saveData);
+    const effectiveType = (conn && conn.effectiveType) || "4g";
+    const slowNetwork = effectiveType === "slow-2g" || effectiveType === "2g" || effectiveType === "3g";
+    const lowPower = reduceMotion || saveData || slowNetwork;
+
+    const navType = getNavType();
+    const isReload = navType === "reload";
+    const isBackForward = navType === "back_forward";
+
+    if (isBackForward) {
+      preloader.style.display = "none";
+      preloader.setAttribute("aria-hidden", "true");
+      window[GLOBAL_FLAG] = false;
+      return;
+    }
+
+    if (!isReload && CONFIG.SKIP_ON_CLIENT_SWAPS) {
+      try {
+        const already = sessionStorage.getItem(CONFIG.SESSION_KEY);
+        if (already === "1") {
+          preloader.style.display = "none";
+          preloader.setAttribute("aria-hidden", "true");
+          window.dispatchEvent(new CustomEvent("preloaderComplete", { detail: { reason: "session-skip" } }));
+          window[GLOBAL_FLAG] = false;
+          return;
+        }
+        sessionStorage.setItem(CONFIG.SESSION_KEY, "1");
+      } catch {}
+    } else {
+      try {
+        sessionStorage.setItem(CONFIG.SESSION_KEY, "1");
+      } catch {}
+    }
+
+    const el = {
+      bar: $("[data-progress-bar]", preloader),
+      glow: $("[data-progress-glow]", preloader),
+      wipe: $("[data-wipe]", preloader),
+      img: $("[data-img]", preloader),
+      overlay: $("[data-frame-overlay]", preloader),
+      stageBg: $("[data-stage-bg]", preloader),
+      accentTop: $("[data-accent-top]", preloader),
+      accentBottom: $("[data-accent-bottom]", preloader),
+      copyText: $("[data-copy-text]", preloader),
+      nameText: $("[data-name-text]", preloader),
+      srStatus: $("[data-sr-status]", preloader),
+    };
+
+    if (el.nameText) clearAndRestoreText(el.nameText, "original");
+    if (el.copyText) clearAndRestoreText(el.copyText, "original");
+
+    const headingMoves = el.nameText ? splitLettersMasked(el.nameText) : [];
+    const paraMoves = el.copyText ? splitWordsMasked(el.copyText) : [];
+
+    const cleanup = [];
+    const on = (t, e, fn, opts) => {
+      if (!t) return;
+      t.addEventListener(e, fn, opts);
+      cleanup.push(() => t.removeEventListener(e, fn, opts));
+    };
+
+    const prevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const prevOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    cleanup.push(() => (document.documentElement.style.overflow = prevOverflow));
+
+    const finishOnce = (() => {
+      let done = false;
+      return (reason) => {
+        if (done) return;
+        done = true;
+
+        preloader.style.display = "none";
+        preloader.setAttribute("aria-hidden", "true");
+
+        if (prevFocus && prevFocus.focus) prevFocus.focus();
+        else document.body.focus?.();
+
+        window.dispatchEvent(new CustomEvent("preloaderComplete", { detail: { reason } }));
+        cleanup.forEach((fn) => fn());
+        window[GLOBAL_FLAG] = false;
+      };
+    })();
+
+    on(window, "keydown", (e) => {
+      if (e.key === "Escape") finishOnce("esc");
+    });
+
+    const timeoutId = window.setTimeout(() => finishOnce("timeout"), CONFIG.MAX_TOTAL_MS || 7000);
+    cleanup.push(() => window.clearTimeout(timeoutId));
+
+    (async () => {
+      try {
+        if (el.img && el.img.decode) await el.img.decode();
+      } catch {}
+
+      if (el.srStatus) el.srStatus.textContent = "Loading content, please wait...";
+
+      if (reduceMotion) {
+        if (el.wipe) el.wipe.style.transform = "scaleY(0)";
+        if (el.img) {
+          el.img.style.transform = "scale(1) translateZ(0)";
+          el.img.style.filter = "blur(0px) brightness(1)";
+        }
+        if (el.overlay) el.overlay.style.opacity = "0";
+        if (el.stageBg) el.stageBg.style.opacity = "1";
+        for (const n of headingMoves) {
+          n.style.opacity = "1";
+          n.style.transform = "translateY(0) translateZ(0)";
+        }
+        for (const n of paraMoves) {
+          n.style.opacity = "1";
+          n.style.transform = "translateY(0) translateZ(0)";
+        }
+        finishOnce("reduced-motion");
+        return;
+      }
+
+      const OSMO_EASE = "cubic-bezier(0.625, 0.05, 0, 1)";
+      const EASE_INOUT = "cubic-bezier(0.85, 0, 0.15, 1)";
+      const ELASTIC_OUT = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+      const EXPO_OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
+
+      const enterMs = lowPower ? Math.max(720, CONFIG.ENTER_MS - 240) : CONFIG.ENTER_MS;
+      const exitMs = lowPower ? Math.max(580, CONFIG.EXIT_MS - 160) : CONFIG.EXIT_MS;
+      const progressMs = lowPower ? Math.max(960, CONFIG.PROGRESS_MS - 240) : CONFIG.PROGRESS_MS;
+
+      // Stage background fade in
+      animateSafe(el.stageBg, [{ opacity: 0 }, { opacity: 1 }], {
+        duration: enterMs + 200,
+        delay: 100,
+        easing: "ease-out",
+        fill: "forwards",
+      });
+
+      // Image reveal - wipe effect
+      animateSafe(el.wipe, [{ transform: "scaleY(1)" }, { transform: "scaleY(0)" }], {
+        duration: enterMs,
+        easing: EASE_INOUT,
+        fill: "forwards",
+      });
+
+      // FIXED: Image animation - starts at 1.0, slightly zooms in for effect
+      animateSafe(
+        el.img,
+        [
+          { transform: "scale(1.0) translateZ(0)", opacity: 1, filter: "blur(8px) brightness(0.92)" },
+          { transform: "scale(1.05) translateZ(0)", opacity: 1, filter: "blur(0px) brightness(1)" },
+        ],
+        {
+          duration: enterMs + 680,
+          easing: EXPO_OUT,
+          fill: "forwards",
+        }
+      );
+
+      // Fade out overlay
+      animateSafe(el.overlay, [{ opacity: 1 }, { opacity: 0 }], {
+        duration: enterMs + 400,
+        delay: 220,
+        easing: "ease-out",
+        fill: "forwards",
+      });
+
+      // Decorative accents
+      animateSafe(
+        el.accentTop,
+        [
+          { transform: "translateX(-50%) scaleX(0)", opacity: 0 },
+          { transform: "translateX(-50%) scaleX(1)", opacity: 0.6 },
+          { transform: "translateX(-50%) scaleX(0.98)", opacity: 0.3 },
+        ],
+        { duration: 1400, delay: 480, easing: EASE_INOUT, fill: "forwards" }
+      );
+
+      animateSafe(
+        el.accentBottom,
+        [
+          { transform: "translateX(-50%) scaleX(0)", opacity: 0 },
+          { transform: "translateX(-50%) scaleX(1)", opacity: 0.6 },
+          { transform: "translateX(-50%) scaleX(0.98)", opacity: 0.3 },
+        ],
+        { duration: 1400, delay: 560, easing: EASE_INOUT, fill: "forwards" }
+      );
+
+      // Heading animation
+      const hDur = lowPower ? 380 : 460;
+      const hStagger = lowPower ? 7 : 9;
+      const hBaseDelay = 180;
+
+      for (let i = 0; i < headingMoves.length; i++) {
+        const ease = i < 3 ? ELASTIC_OUT : OSMO_EASE;
+        animateSafe(
+          headingMoves[i],
+          [
+            { opacity: 0, transform: "translateY(120%) translateZ(0)" },
+            { opacity: 1, transform: "translateY(0) translateZ(0)" },
+          ],
+          { duration: hDur, delay: hBaseDelay + i * hStagger, easing: ease, fill: "forwards" }
+        );
+      }
+
+      if (el.srStatus) {
+        setTimeout(() => {
+          if (el.srStatus) el.srStatus.textContent = "Content loading, halfway there...";
+        }, 800);
+      }
+
+      // Paragraph animation
+      const pDur = lowPower ? 480 : 600;
+      const pStagger = lowPower ? 32 : 42;
+      const pBaseDelay = 340;
+
+      for (let i = 0; i < paraMoves.length; i++) {
+        animateSafe(
+          paraMoves[i],
+          [
+            { opacity: 0, transform: "translateY(120%) translateZ(0)" },
+            { opacity: 1, transform: "translateY(0) translateZ(0)" },
+          ],
+          { duration: pDur, delay: pBaseDelay + i * pStagger, easing: OSMO_EASE, fill: "forwards" }
+        );
+      }
+
+      // Progress bar
+      const progress = animateSafe(el.bar, [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], {
+        duration: progressMs,
+        delay: 520,
+        easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+        fill: "forwards",
+      });
+
+      // Progress glow
+      animateSafe(
+        el.glow,
+        [
+          { opacity: 0, transform: "translateY(-50%) translateX(-30px)" },
+          { opacity: 1, transform: "translateY(-50%) translateX(0px)" },
+          { opacity: 0, transform: "translateY(-50%) translateX(30px)" },
+        ],
+        { duration: progressMs - 200, delay: 620, easing: "ease-in-out", fill: "forwards" }
+      );
+
+      await wait(progress);
+
+      if (el.srStatus) el.srStatus.textContent = "Almost ready...";
+
+      // Exit animations
+      animateSafe(el.accentTop, [{ opacity: 0.3 }, { opacity: 0 }], {
+        duration: 280,
+        easing: "ease-out",
+        fill: "forwards",
+      });
+
+      animateSafe(el.accentBottom, [{ opacity: 0.3 }, { opacity: 0 }], {
+        duration: 280,
+        delay: 40,
+        easing: "ease-out",
+        fill: "forwards",
+      });
+
+      // Text exit
+      const outHStagger = lowPower ? 9 : 11;
+      for (let i = 0; i < headingMoves.length; i++) {
+        animateSafe(
+          headingMoves[i],
+          [
+            { opacity: 1, transform: "translateY(0) translateZ(0)" },
+            { opacity: 0, transform: "translateY(-22px) translateZ(0)" },
+          ],
+          { duration: 360, delay: i * outHStagger, easing: EXPO_OUT, fill: "forwards" }
+        );
+      }
+
+      const outPStagger = lowPower ? 20 : 26;
+      for (let i = 0; i < paraMoves.length; i++) {
+        animateSafe(
+          paraMoves[i],
+          [
+            { opacity: 1, transform: "translateY(0) translateZ(0)" },
+            { opacity: 0, transform: "translateY(-18px) translateZ(0)" },
+          ],
+          { duration: 340, delay: 30 + i * outPStagger, easing: EXPO_OUT, fill: "forwards" }
+        );
+      }
+
+      // Stage bg fades
+      animateSafe(el.stageBg, [{ opacity: 1 }, { opacity: 0 }], {
+        duration: exitMs - 100,
+        easing: "ease-in",
+        fill: "forwards",
+      });
+
+      // FIXED: Image exit - zooms out slightly
+      const outImg = animateSafe(
+        el.img,
+        [
+          { opacity: 1, transform: "scale(1.05) translateZ(0)", filter: "blur(0px) brightness(1)" },
+          { opacity: 0.88, transform: "scale(1.08) translateZ(0)", filter: "blur(2px) brightness(0.9)" },
+        ],
+        { duration: exitMs, easing: EASE_INOUT, fill: "forwards" }
+      );
+
+      // Wipe covers from top
+      if (el.wipe) el.wipe.style.transformOrigin = "50% 0%";
+      const outWipe = animateSafe(el.wipe, [{ transform: "scaleY(0)" }, { transform: "scaleY(1)" }], {
+        duration: Math.max(480, exitMs - 80),
+        delay: 100,
+        easing: EASE_INOUT,
+        fill: "forwards",
+      });
+
+      await Promise.all([wait(outImg), wait(outWipe)]);
+
+      // Final slide
+      preloader.style.willChange = "transform, opacity";
+      const slide = animateSafe(
+        preloader,
+        [
+          { transform: "translateY(0) translateZ(0)", opacity: 1 },
+          { transform: "translateY(-100%) translateZ(0)", opacity: 0.96 },
+        ],
+        { duration: exitMs, easing: EXPO_OUT, fill: "forwards" }
+      );
+
+      await wait(slide);
+
+      preloader.style.willChange = "auto";
+      if (el.srStatus) el.srStatus.textContent = "Content loaded";
+      finishOnce(lowPower ? "completed-lowpower" : "completed");
+    })().catch(() => finishOnce("error"));
+  }
+
+  runPreloaderOnce();
+
+  window.addEventListener("astro:page-load", () => runPreloaderOnce(), { passive: true });
+  window.addEventListener("astro:after-swap", () => runPreloaderOnce(), { passive: true });
+
+  window.addEventListener(
+    "pageshow",
+    (e) => {
+      if (!e.persisted) return;
+      const preloader = document.getElementById(PRELOADER_ID);
+      if (!preloader) return;
+      preloader.style.display = "none";
+      preloader.setAttribute("aria-hidden", "true");
+      window[GLOBAL_FLAG] = false;
+    },
+    { passive: true }
+  );
+</script>
