@@ -8,6 +8,7 @@
     :aria-label="ariaLabel || label"
     class="btn-animate-chars"
     :class="customClass"
+    :style="computedStyle"
     @click="handleClick"
   >
     <div class="btn-animate-chars__bg" />
@@ -19,116 +20,127 @@
 
 <script>
 export default {
-  name: 'Button',
+  name: "Button",
   props: {
-    label: {
-      type: String,
-      default: ''
-    },
-    tag: {
-      type: String,
-      default: 'button'
-    },
+    label: { type: String, default: "" },
+    tag: { type: String, default: "button" },
     href: String,
     to: [String, Object],
-    type: {
-      type: String,
-      default: 'button'
-    },
+    type: { type: String, default: "button" },
     disabled: Boolean,
     ariaLabel: String,
     customClass: [String, Array, Object],
-    staggerDelay: {
-      type: Number,
-      default: 0.01
-    },
-    animationDuration: {
-      type: Number,
-      default: 0.6
-    },
-    animationEasing: {
-      type: String,
-      default: 'cubic-bezier(0.625, 0.05, 0, 1)'
-    }
+
+    /* --- animation props --- */
+    staggerDelay: { type: Number, default: 0.01 },
+    animationDuration: { type: Number, default: 0.6 },
+    animationEasing: { type: String, default: "cubic-bezier(0.625, 0.05, 0, 1)" },
+
+    /* --- new sizing props --- */
+    width: { type: [String, Number], default: null },     // e.g. 220, "14rem", "100%"
+    height: { type: [String, Number], default: null },    // e.g. 48, "3rem"
+    paddingX: { type: [String, Number], default: "2em" }, // e.g. 24, "1.5rem"
+    paddingY: { type: [String, Number], default: "1em" }, // e.g. 14, "0.875rem"
+
+    fontSize: { type: [String, Number], default: "1em" }, // e.g. 16, "0.95rem"
+    fontWeight: { type: [String, Number], default: null },// e.g. 600
+    letterSpacing: { type: [String, Number], default: null }, // e.g. "0.04em"
+
+    // controls the hover “lift” distance (ties to line-height)
+    lift: { type: [String, Number], default: "1.3em" } // match your original
   },
   data() {
-    return {
-      observer: null
+    return { observer: null };
+  },
+  computed: {
+    computedStyle() {
+      const px = (v) => (typeof v === "number" ? `${v}px` : v);
+      const style = {
+        "--btn-px": px(this.paddingX),
+        "--btn-py": px(this.paddingY),
+        "--btn-fs": px(this.fontSize),
+        "--btn-lift": px(this.lift),
+        "--btn-ease": this.animationEasing,
+        "--btn-dur": `${this.animationDuration}s`,
+      };
+
+      if (this.width != null) style["--btn-w"] = px(this.width);
+      if (this.height != null) style["--btn-h"] = px(this.height);
+      if (this.fontWeight != null) style["--btn-fw"] = this.fontWeight;
+      if (this.letterSpacing != null) style["--btn-ls"] = px(this.letterSpacing);
+
+      return style;
     }
   },
   mounted() {
     this.$nextTick(() => {
-      this.initButtonCharacterStagger()
-      this.setupMutationObserver()
-    })
+      this.initButtonCharacterStagger();
+      this.setupMutationObserver();
+    });
   },
   beforeUnmount() {
-    if (this.observer) {
-      this.observer.disconnect()
-    }
+    this.observer?.disconnect();
   },
   watch: {
     label() {
-      this.$nextTick(() => {
-        this.initButtonCharacterStagger()
-      })
+      this.$nextTick(() => this.initButtonCharacterStagger());
     }
   },
   methods: {
     initButtonCharacterStagger() {
-      if (!this.$refs.textElement) return
+      const el = this.$refs.textElement;
+      if (!el) return;
 
-      const text = this.$refs.textElement.textContent
-      this.$refs.textElement.innerHTML = ''
+      const text = el.textContent || "";
+      el.innerHTML = "";
 
-      ;[...text].forEach((char, index) => {
-        const span = document.createElement('span')
-        span.textContent = char
-        span.style.transitionDelay = `${index * this.staggerDelay}s`
-        span.style.transitionDuration = `${this.animationDuration}s`
-        span.style.transitionTimingFunction = this.animationEasing
+      [...text].forEach((char, index) => {
+        const span = document.createElement("span");
+        span.textContent = char;
 
-        if (char === ' ') {
-          span.style.whiteSpace = 'pre'
-        }
+        // per-char stagger timing (unchanged)
+        span.style.transitionDelay = `${index * this.staggerDelay}s`;
+        span.style.transitionDuration = `var(--btn-dur)`;
+        span.style.transitionTimingFunction = `var(--btn-ease)`;
 
-        this.$refs.textElement.appendChild(span)
-      })
+        if (char === " ") span.style.whiteSpace = "pre";
+
+        el.appendChild(span);
+      });
     },
     setupMutationObserver() {
-      if (!this.$refs.textElement) return
+      const el = this.$refs.textElement;
+      if (!el) return;
 
       this.observer = new MutationObserver(() => {
-        this.$nextTick(() => {
-          this.initButtonCharacterStagger()
-        })
-      })
+        this.$nextTick(() => this.initButtonCharacterStagger());
+      });
 
-      this.observer.observe(this.$refs.textElement, {
-        childList: true,
-        characterData: true,
-        subtree: true
-      })
+      this.observer.observe(el, { childList: true, characterData: true, subtree: true });
     },
     handleClick(event) {
-      if (!this.disabled) {
-        this.$emit('click', event)
-      }
+      if (!this.disabled) this.$emit("click", event);
     }
   }
-}
+};
 </script>
 
 <style scoped>
 .btn-animate-chars {
+  /* sizing API */
+  width: var(--btn-w, fit-content);
+  height: var(--btn-h, auto);
+  padding: var(--btn-py, 1em) var(--btn-px, 2em);
+
+  font-size: var(--btn-fs, 1em);
+  font-weight: var(--btn-fw, inherit);
+  letter-spacing: var(--btn-ls, normal);
+
   color: #131313;
   cursor: pointer;
   border-radius: 0.25em;
   justify-content: center;
   align-items: center;
-  width: fit-content;
-  padding: 1em 2em;
-  font-size: 1em;
   line-height: 1;
   text-decoration: none;
   display: inline-flex;
@@ -137,6 +149,9 @@ export default {
   background: transparent;
   font-family: inherit;
   white-space: nowrap;
+
+  /* if height is set, ensure vertical centering behaves */
+  box-sizing: border-box;
 }
 
 .btn-animate-chars:disabled {
@@ -157,17 +172,18 @@ export default {
   display: inline-block;
 }
 
+/* KEY CHANGE: lift distance is now a variable */
 .btn-animate-chars [data-button-animate-chars] :deep(span) {
   display: inline-block;
   position: relative;
-  text-shadow: 0 1.3em currentColor;
+  text-shadow: 0 var(--btn-lift, 1.3em) currentColor;
   transform: translateY(0) rotate(0.001deg);
   transition-property: transform;
   will-change: transform;
 }
 
 .btn-animate-chars:hover [data-button-animate-chars] :deep(span) {
-  transform: translateY(-1.3em) rotate(0.001deg);
+  transform: translateY(calc(-1 * var(--btn-lift, 1.3em))) rotate(0.001deg);
 }
 
 .btn-animate-chars__bg {
@@ -176,8 +192,8 @@ export default {
   position: absolute;
   inset: 0;
   transition-property: inset;
-  transition-duration: 0.6s;
-  transition-timing-function: cubic-bezier(0.625, 0.05, 0, 1);
+  transition-duration: var(--btn-dur, 0.6s);
+  transition-timing-function: var(--btn-ease, cubic-bezier(0.625, 0.05, 0, 1));
   will-change: inset;
 }
 

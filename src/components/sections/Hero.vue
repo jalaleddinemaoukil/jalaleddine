@@ -11,17 +11,26 @@
     <div class="hero__content">
       <div class="hero__grid">
         <div class="hero__text">
-          <!-- same text, just add data-split like the pen -->
           <p ref="headingRef" class="hero__heading" data-split="heading">
             Your website should work as hard as you do.
             <br />
             In today's digital landscape, your online presence isn't just a
             business card. it's your most powerful growth engine.
+            <br /><br />
+            <span style="font-size: clamp(0.8em, 1vw, 1em); opacity: 0.7">(Scroll Down)</span>
           </p>
         </div>
 
         <div class="hero__cta">
-          <Button tag="a" href="/link">Link Button</Button>
+          <span ref="ctaMaskRef" class="cta-mask" aria-hidden="true">
+            <span ref="ctaMoverRef" class="cta-mover">
+              <Button tag="a" href="/link" width="clamp(100%, 2.4vw, 420px)" height="clamp(60px, 5vw, 90px)" fontSize="clamp(15px, 2vw, 20px)"
+                paddingX="clamp(25px, 2vw, 40px)" paddingY="0px" font-weight="700">
+                Build Your Website Now
+              </Button>
+
+            </span>
+          </span>
         </div>
       </div>
     </div>
@@ -34,10 +43,15 @@ import Button from "../base/Button.vue";
 
 const heroRef = ref(null);
 const headingRef = ref(null);
+const ctaMaskRef = ref(null);
+const ctaMoverRef = ref(null);
 
 let splitInstance = null;
-let currentTween = null;
-let currentTargets = null;
+let tl = null;
+let revealStarted = false;
+
+let preloaderObserver = null;
+let rafId = null;
 
 const setViewportHeight = () => {
   document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
@@ -46,43 +60,45 @@ const setViewportHeight = () => {
 const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-const isPreloaderHidden = () => {
-  const preloader = document.getElementById("preloader");
-  return (
-    !preloader ||
-    preloader.getAttribute("aria-hidden") === "true" ||
-    getComputedStyle(preloader).display === "none"
-  );
-};
+const getPreloader = () => document.getElementById("preloader");
 
-const cleanup = () => {
-  currentTween?.kill();
-  currentTween = null;
-  currentTargets = null;
-
-  // revert SplitText (restores original DOM)
-  splitInstance?.revert?.();
-  splitInstance = null;
-};
-
-const initSplitNow = () => {
+const ensurePlugins = () => {
   const gsap = window.gsap;
   const SplitText = window.SplitText;
   const CustomEase = window.CustomEase;
+  if (!gsap) return null;
 
-  if (!gsap || !SplitText || !headingRef.value) return;
+  if (SplitText && CustomEase) gsap.registerPlugin(SplitText, CustomEase);
+  if (CustomEase?.create) CustomEase.create("osmo-ease", "0.625, 0.05, 0, 1");
 
-  cleanup();
+  return { gsap, SplitText };
+};
 
-  // match CodePen
-  gsap.registerPlugin(SplitText, CustomEase);
+const cleanup = () => {
+  tl?.kill();
+  tl = null;
+  splitInstance?.revert?.();
+  splitInstance = null;
+  revealStarted = false;
 
-  if (CustomEase?.create) {
-    CustomEase.create("osmo-ease", "0.625, 0.05, 0, 1");
-  }
+  if (preloaderObserver) preloaderObserver.disconnect();
+  preloaderObserver = null;
 
-  // EXACT CodePen-style SplitText.create with mask:"lines"
-  // (this is what gives the clean masked reveal)
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+};
+
+const initSplit = () => {
+  const pack = ensurePlugins();
+  if (!pack) return;
+  const { gsap, SplitText } = pack;
+
+  if (!SplitText || !headingRef.value) return;
+
+  splitInstance?.revert?.();
+  splitInstance = null;
+
+  // EXACT CodePen config (mask:"lines")
   if (typeof SplitText.create === "function") {
     splitInstance = SplitText.create(headingRef.value, {
       type: "lines, words, chars",
@@ -92,7 +108,6 @@ const initSplitNow = () => {
       charsClass: "letter",
     });
   } else {
-    // fallback for older API (still works)
     splitInstance = new SplitText(headingRef.value, {
       type: "lines, words, chars",
       linesClass: "line",
@@ -101,59 +116,129 @@ const initSplitNow = () => {
     });
   }
 
-  // Pre-position lines immediately so reveal can play instantly later (no lag)
-  const targets = headingRef.value.querySelectorAll(".line");
-  currentTargets = targets;
-  gsap.set(targets, { yPercent: 110, force3D: true });
+  gsap.set(headingRef.value.querySelectorAll(".line"), { yPercent: 110, force3D: true });
 };
 
-const animateLines = () => {
-  const gsap = window.gsap;
-  if (!gsap || !headingRef.value) return;
+const buildTimeline = () => {
+  const pack = ensurePlugins();
+  if (!pack) return;
+  const { gsap } = pack;
 
   if (prefersReducedMotion()) {
-    gsap.set(headingRef.value, { clearProps: "all" });
+    gsap.set([headingRef.value, ctaMoverRef.value], { clearProps: "all" });
     return;
   }
 
-  // kill any previous tween like the pen
-  if (currentTween) {
-    currentTween.kill();
-    gsap.set(currentTargets, { yPercent: 0 });
+  // build without playing
+  tl?.kill();
+  tl = null;
+
+  initSplit();
+
+  const lines = headingRef.value?.querySelectorAll?.(".line") || [];
+  const ctaMover = ctaMoverRef.value;
+
+  if (ctaMover) gsap.set(ctaMover, { yPercent: 140, force3D: true });
+
+  tl = gsap.timeline({ paused: true });
+
+  if (lines.length) {
+    tl.fromTo(
+      lines,
+      { yPercent: 110 },
+      { yPercent: 0, duration: 0.8, stagger: 0.1, ease: "osmo-ease" },
+      0
+    );
   }
 
-  const targets = headingRef.value.querySelectorAll(".line");
-  currentTargets = targets;
+  // CTA reveal (masked, same motion language)
+  if (ctaMover) {
+    tl.to(ctaMover, { yPercent: 0, duration: 0.75, ease: "osmo-ease", clearProps: "transform" }, 0.16);
+  }
+};
 
-  // EXACT CodePen animation params for "lines"
-  currentTween = gsap.fromTo(
-    targets,
-    { yPercent: 110 },
-    { yPercent: 0, duration: 0.8, stagger: 0.08, ease: "osmo-ease" }
+const playReveal = () => {
+  if (revealStarted) return;
+  revealStarted = true;
+
+  if (!tl) buildTimeline();
+  // next frame = sync with preloader exit animation start
+  requestAnimationFrame(() => tl?.restart(true));
+};
+
+const isPreloaderAlreadyGone = () => {
+  const p = getPreloader();
+  if (!p) return true;
+  const cs = getComputedStyle(p);
+  return (
+    p.getAttribute("aria-hidden") === "true" ||
+    cs.display === "none" ||
+    cs.visibility === "hidden" ||
+    Number(cs.opacity) === 0
   );
 };
 
-const onPreloaderComplete = () => {
-  // Play immediately when preloader ends (no extra waits)
-  animateLines();
+/**
+ * This is the key: fire reveal when the preloader STARTS exiting,
+ * not when it finishes.
+ */
+const attachPreloaderExitHooks = () => {
+  const p = getPreloader();
+  if (!p) return;
+
+  // 1) Transition/animation start = best possible timing
+  const onExitStart = () => playReveal();
+  p.addEventListener("transitionstart", onExitStart, { once: true });
+  p.addEventListener("animationstart", onExitStart, { once: true });
+
+  // 2) MutationObserver: detect class/style/aria changes that usually begin exit
+  preloaderObserver = new MutationObserver(() => {
+    if (revealStarted) return;
+
+    // common exit signals:
+    // - aria-hidden set
+    // - opacity starts decreasing
+    // - class changes (e.g., "is-exiting")
+    const cs = getComputedStyle(p);
+    const opacity = Number(cs.opacity);
+
+    if (p.getAttribute("aria-hidden") === "true") playReveal();
+    else if (opacity < 0.98) playReveal();
+  });
+
+  preloaderObserver.observe(p, {
+    attributes: true,
+    attributeFilter: ["class", "style", "aria-hidden"],
+  });
+
+  // 3) Fallback: if element is removed from DOM, reveal immediately
+  const parent = p.parentNode;
+  if (parent) {
+    const removalObserver = new MutationObserver(() => {
+      if (!document.getElementById("preloader")) playReveal();
+    });
+    removalObserver.observe(parent, { childList: true });
+  }
+
+  // 4) Still support your existing event (late, but harmless fallback)
+  window.addEventListener("preloaderComplete", playReveal, { once: true });
 };
 
 let resizeTimer = null;
 const onResize = () => {
   setViewportHeight();
-
-  // Rebuild split after resize so "lines" remain correct
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    const gsap = window.gsap;
-    const alreadyRevealed = currentTween && currentTween.progress() > 0;
+    const pack = ensurePlugins();
+    if (!pack) return;
+    const { gsap } = pack;
 
-    initSplitNow();
+    const alreadyPlayed = tl && tl.progress() > 0;
+    buildTimeline();
 
-    // If user already saw the reveal, keep it visible (don’t replay)
-    if (alreadyRevealed && gsap && headingRef.value) {
-      const targets = headingRef.value.querySelectorAll(".line");
-      gsap.set(targets, { yPercent: 0, clearProps: "transform" });
+    if (alreadyPlayed && gsap && headingRef.value) {
+      gsap.set(headingRef.value.querySelectorAll(".line"), { yPercent: 0, clearProps: "transform" });
+      if (ctaMoverRef.value) gsap.set(ctaMoverRef.value, { yPercent: 0, clearProps: "transform" });
     }
   }, 120);
 };
@@ -162,36 +247,27 @@ onMounted(() => {
   setViewportHeight();
   window.addEventListener("resize", onResize, { passive: true });
 
-  // IMPORTANT: init immediately (no document.fonts.ready delay)
-  // This removes the “preloader ends → pause → animation starts” lag.
-  initSplitNow();
+  // Build immediately so play has zero setup cost
+  buildTimeline();
 
-  if (isPreloaderHidden()) {
-    animateLines();
-  } else {
-    window.addEventListener("preloaderComplete", onPreloaderComplete, { once: true });
+  // If preloader is already gone, reveal now
+  if (isPreloaderAlreadyGone()) {
+    playReveal();
+    return;
   }
 
-  // Optional: once fonts finish, rebuild split for perfect line breaks
-  // (does NOT delay the first animation)
-  document.fonts?.ready?.then(() => {
-    const gsap = window.gsap;
-    const wasRevealed = currentTween && currentTween.progress() > 0;
-
-    initSplitNow();
-    if (wasRevealed && gsap && headingRef.value) {
-      gsap.set(headingRef.value.querySelectorAll(".line"), { yPercent: 0, clearProps: "transform" });
-    }
-  });
+  // Otherwise attach exit hooks that fire at EXIT START
+  attachPreloaderExitHooks();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
-  window.removeEventListener("preloaderComplete", onPreloaderComplete);
+  window.removeEventListener("preloaderComplete", playReveal);
   clearTimeout(resizeTimer);
   cleanup();
 });
 </script>
+
 
 <style scoped>
 .hero {
@@ -240,30 +316,38 @@ onBeforeUnmount(() => {
 }
 
 .hero__heading {
-  /* responsive type */
   font-size: clamp(20px, 3.2vw, 28px);
   line-height: 1.35;
   font-weight: 300;
   margin: 0;
 
-  /* responsive measure (line length) */
   max-width: 46ch;
   width: 100%;
 
-  /* prevents overflow on narrow screens */
   overflow-wrap: anywhere;
   word-break: normal;
 
-  /* if you want uppercase, keep it but tame spacing */
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
-
-/* Minimal styling needed for the Osmo-style line reveal.
-   SplitText's mask:"lines" handles the masking wrapper creation. */
 .hero :deep(.line) {
   display: block;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+/* CTA masked reveal */
+.cta-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 6px;
+  margin-bottom: -6px;
+}
+
+.cta-mover {
+  display: inline-block;
   will-change: transform;
   transform: translate3d(0, 0, 0);
 }
@@ -280,18 +364,17 @@ onBeforeUnmount(() => {
     align-items: flex-end;
     justify-content: space-between;
   }
+
   .hero__cta {
     justify-content: flex-end;
   }
-
 }
 
 @media (max-width: 480px) {
   .hero__heading {
-    max-width: 30ch;        /* better wraps on phones */
+    max-width: 30ch;
     line-height: 1.4;
-    letter-spacing: 0.02em; /* slightly tighter for mobile */
+    letter-spacing: 0.02em;
   }
 }
-
 </style>
