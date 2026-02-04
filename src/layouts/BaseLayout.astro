@@ -1,6 +1,13 @@
 ---
-import '../styles/global.css';
-import Preloader from '../components/Preloader.astro';
+import "../styles/global.css";
+import Preloader from "../components/Preloader.astro";
+// @ts-expect-error - Vue SFC with <script setup> is valid in Astro
+import SideNav from "../components/base/SideNav.vue";
+import iconUrl from "../assets/images/icon.svg";
+import profileImage from "../assets/images/profile.webp";
+
+const iconUrlSrc = typeof iconUrl === "string" ? iconUrl : iconUrl.src;
+const profileImageSrc = typeof profileImage === "string" ? profileImage : profileImage.src;
 ---
 
 <!doctype html>
@@ -8,11 +15,14 @@ import Preloader from '../components/Preloader.astro';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Jalal Eddine Maoukil's personal website and portfolio." />
-    <link rel="icon" type="image/svg+xml" href="/images/icon.svg" />
+    <meta
+      name="description"
+      content="Jalal Eddine Maoukil's personal website and portfolio."
+    />
+    <link rel="icon" type="image/svg+xml" href={iconUrlSrc} />
     <title>Jalal Eddine Maoukil</title>
 
-    <link rel="preload" as="image" href="/images/profile.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href={profileImageSrc} fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -21,13 +31,36 @@ import Preloader from '../components/Preloader.astro';
     />
 
     <!-- GSAP (load once globally) -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js" defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"
+      defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"
+      defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"
+      defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"
+      defer></script>
+   
   </head>
 
   <body>
     <Preloader />
+    <SideNav client:load />
     <slot />
+    <script>
+      import Lenis from "lenis";
+      const lenis = new Lenis({
+        lerp: 0.1,
+        duration: 1.5,
+      });
+      function raf(time: number) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+    </script>
   </body>
 </html>

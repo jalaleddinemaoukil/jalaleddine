@@ -12,6 +12,9 @@
     @click="handleClick"
   >
     <div class="btn-animate-chars__bg" />
+    <span class="btn-animate-chars__dot-wrap" aria-hidden="true">
+      <span class="btn-animate-chars__dot"></span>
+    </span>
     <span ref="textElement" data-button-animate-chars class="btn-animate-chars__text">
       <slot>{{ label }}</slot>
     </span>
@@ -131,12 +134,12 @@ export default {
   width: var(--btn-w, fit-content);
   height: var(--btn-h, auto);
   padding: var(--btn-py, 1em) var(--btn-px, 2em);
-
+  text-transform: uppercase;
   font-size: var(--btn-fs, 1em);
   font-weight: var(--btn-fw, inherit);
   letter-spacing: var(--btn-ls, normal);
 
-  color: #131313;
+  color: var(--color-ink, #131313);
   cursor: pointer;
   border-radius: 0.25em;
   justify-content: center;
@@ -144,11 +147,17 @@ export default {
   line-height: 1;
   text-decoration: none;
   display: inline-flex;
+  gap: 0.75em;
   position: relative;
   border: none;
   background: transparent;
   font-family: inherit;
   white-space: nowrap;
+  --btn-dot-size: 0.6em;
+  --btn-dot-stroke: 1.5px;
+  --btn-dot-fill-scale: 0.2;
+  --btn-dot-fill-scale-hover: 0.6;
+  --btn-dot-outline-scale-hover: 0.92;
 
   /* if height is set, ensure vertical centering behaves */
   box-sizing: border-box;
@@ -164,6 +173,48 @@ export default {
   line-height: 1.3;
   position: relative;
   z-index: 1;
+}
+
+.btn-animate-chars__dot-wrap {
+  width: var(--btn-dot-size);
+  height: var(--btn-dot-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-animate-chars__dot {
+  position: relative;
+  width: var(--btn-dot-size);
+  height: var(--btn-dot-size);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--btn-dur, 0.6s) var(--btn-ease, cubic-bezier(0.625, 0.05, 0, 1));
+}
+
+.btn-animate-chars__dot::before,
+.btn-animate-chars__dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  transition: transform var(--btn-dur, 0.6s) var(--btn-ease, cubic-bezier(0.625, 0.05, 0, 1)),
+    opacity var(--btn-dur, 0.6s) var(--btn-ease, cubic-bezier(0.625, 0.05, 0, 1));
+}
+
+.btn-animate-chars__dot::before {
+  border: var(--btn-dot-stroke) solid currentColor;
+  background: transparent;
+}
+
+.btn-animate-chars__dot::after {
+  background: currentColor;
+  transform: scale(var(--btn-dot-fill-scale));
+  opacity: 0;
 }
 
 .btn-animate-chars [data-button-animate-chars] {
@@ -186,8 +237,17 @@ export default {
   transform: translateY(calc(-1 * var(--btn-lift, 1.3em))) rotate(0.001deg);
 }
 
+.btn-animate-chars:hover .btn-animate-chars__dot {
+  transform: scale(var(--btn-dot-outline-scale-hover));
+}
+
+.btn-animate-chars:hover .btn-animate-chars__dot::after {
+  transform: scale(var(--btn-dot-fill-scale-hover));
+  opacity: 1;
+}
+
 .btn-animate-chars__bg {
-  background-color: #efeeec;
+  background-color: var(--color-cta-bg, #efeeec);
   border-radius: 0.25em;
   position: absolute;
   inset: 0;
@@ -208,7 +268,8 @@ export default {
 
 @media (prefers-reduced-motion: reduce) {
   .btn-animate-chars [data-button-animate-chars] :deep(span),
-  .btn-animate-chars__bg {
+  .btn-animate-chars__bg,
+  .btn-animate-chars__dot {
     transition-duration: 0.01ms !important;
   }
 }

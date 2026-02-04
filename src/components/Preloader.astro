@@ -13,6 +13,8 @@ const PRELOADER_CONFIG = {
 } as const;
 
 const CONFIG_JSON = JSON.stringify(PRELOADER_CONFIG);
+import profileImage from "../assets/images/profile.webp";
+const profileImageSrc = typeof profileImage === "string" ? profileImage : profileImage.src;
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
@@ -22,7 +24,7 @@ const CONFIG_JSON = JSON.stringify(PRELOADER_CONFIG);
   href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap"
 />
 
-<link rel="preload" as="image" href="/images/profile.webp" />
+<link rel="preload" as="image" href={profileImageSrc} />
 
 <div
   id="preloader"
@@ -47,8 +49,7 @@ const CONFIG_JSON = JSON.stringify(PRELOADER_CONFIG);
       <div class="frame__inner">
         <img
           data-img
-          src="/images/profile.webp"
-          srcset="/images/profile.webp 1x"
+          src={profileImageSrc}
           sizes="(max-width: 768px) 68vw, 25rem"
           width="800"
           height="800"
