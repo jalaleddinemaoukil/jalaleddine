@@ -9,12 +9,9 @@
     <div class="work__panels">
       <article
         v-for="(item, idx) in items"
-        :key="item.src"
+        :key="item._id || item.src || item.title"
         class="work__panel"
         :ref="(el) => setPanelRef(el, idx)"
-        @pointermove="(e) => onPointerMove(e, idx)"
-        @pointerenter="() => onPointerEnter(idx)"
-        @pointerleave="() => onPointerLeave(idx)"
       >
         <div class="work__bg">
           <img
@@ -22,33 +19,42 @@
             class="work__bg-img"
             :src="item.bg"
             :alt="item.title"
+            width="1920"
+            height="1080"
             loading="lazy"
             decoding="async"
           />
         </div>
-        <a class="work__link" :href="item.href" :aria-label="item.title">
-          <div class="work__meta work__meta--left">{{ item.title }}</div>
-          <div class="work__meta work__meta--right">
-            <span class="work__meta-mark">↳</span>
-            <span class="work__meta-copy">{{ item.description }}</span>
-          </div>
+        <div class="work__meta work__meta--left">{{ item.title }}</div>
+        <div class="work__meta work__meta--right">
+          <span class="work__meta-mark">↳</span>
+          <span class="work__meta-copy">{{ item.description }}</span>
+        </div>
+        <a
+          class="work__media-link"
+          :href="item.href"
+          :aria-label="`Open ${item.title} live project`"
+          @pointermove="onCursorMove"
+          @pointerenter="onCursorEnter"
+          @pointerleave="onCursorLeave"
+          @focus="onCursorFocus"
+          @blur="onCursorLeave"
+        >
           <div class="work__media" :ref="(el) => setMediaRef(el, idx)">
             <video
               :ref="(el) => setImageRef(el, idx)"
               class="work__video"
               :src="item.src"
-              :aria-label="item.alt"
+              :aria-label="item.alt || item.title"
               autoplay
               loop
               muted
               playsinline
               preload="metadata"
+              loading="lazy"
             ></video>
           </div>
-          <div class="work__hover" :ref="(el) => setHoverRef(el, idx)">
-            <span class="work__hover-dot"></span>
-            <span class="work__hover-label">View Project</span>
-          </div>
+          <span class="work__cursor" aria-hidden="true">View</span>
         </a>
       </article>
     </div>
@@ -56,25 +62,37 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref } from "vue";
 import RevealText from "../base/RevealText.vue";
 import projectVideo from "../../assets/videos/projects/noiriv.mp4";
-import profileImage from "../../assets/images/profile.webp";
+import bgOne from "../../assets/images/bg/bg-1.webp";
+import bgTwo from "../../assets/images/bg/bg-2.webp";
+import bgThree from "../../assets/images/bg/bg-3.webp";
 
 const videoSrc = typeof projectVideo === "string" ? projectVideo : projectVideo.src;
-const bgSrc = typeof profileImage === "string" ? profileImage : profileImage.src;
-const items = [
+const bgOneSrc = typeof bgOne === "string" ? bgOne : bgOne.src;
+const bgTwoSrc = typeof bgTwo === "string" ? bgTwo : bgTwo.src;
+const bgThreeSrc = typeof bgThree === "string" ? bgThree : bgThree.src;
+
+const props = defineProps({
+  items: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const fallbackItems = [
   {
     src: videoSrc,
-    bg: bgSrc,
-    alt: "Featured work visual 1",
-    title: "StringTune",
-    description: "StringTune is a modular JS library for quick, flexible use of animations and hooks — combine, tweak, or craft your own effects.",
+    bg: bgOneSrc,
+    alt: "Featured Web Design & Development work visual 1",
+    title: "Noiriv",
+    description: "Noiriv",
     href: "/works",
   },
   {
     src: videoSrc,
-    bg: bgSrc,
+    bg: bgTwoSrc,
     alt: "Featured work visual 2",
     title: "Featured Work 2",
     description: "A cinematic product story and interaction layer built for performance.",
@@ -82,7 +100,7 @@ const items = [
   },
   {
     src: videoSrc,
-    bg: bgSrc,
+    bg: bgThreeSrc,
     alt: "Featured work visual 3",
     title: "Featured Work 3",
     description: "A bold brand system and immersive experience design.",
@@ -90,11 +108,10 @@ const items = [
   },
 ];
 
+const items = computed(() => (props.items?.length ? props.items : fallbackItems));
+
 const panels = ref([]);
 const images = ref([]);
-const hovers = ref([]);
-const hoverX = ref([]);
-const hoverY = ref([]);
 const medias = ref([]);
 const bgImages = ref([]);
 let resizeTimer = null;
@@ -118,11 +135,6 @@ const setMediaRef = (el, idx) => {
 const setBgRef = (el, idx) => {
   if (!el) return;
   bgImages.value[idx] = el;
-};
-
-const setHoverRef = (el, idx) => {
-  if (!el) return;
-  hovers.value[idx] = el;
 };
 
 const prefersReducedMotion = () =>
@@ -196,52 +208,52 @@ const buildParallax = () => {
   });
 };
 
-const onPointerMove = (event, idx) => {
-  const hoverEl = hovers.value[idx];
-  const panel = panels.value[idx];
-  if (!hoverEl || !panel) return;
-  const rect = panel.getBoundingClientRect();
-  const x = event.clientX - rect.left + 16;
-  const y = event.clientY - rect.top + 16;
-  hoverX.value[idx]?.(x);
-  hoverY.value[idx]?.(y);
+const onCursorMove = (event) => {
+  if (event.pointerType === "touch") return;
+  const target = event.currentTarget;
+  if (!target) return;
+  const rect = target.getBoundingClientRect();
+  const offset = 18;
+  const x = event.clientX - rect.left + offset;
+  const y = event.clientY - rect.top + offset;
+  target.style.setProperty("--cursor-x", `${x.toFixed(2)}px`);
+  target.style.setProperty("--cursor-y", `${y.toFixed(2)}px`);
 };
 
-const onPointerLeave = (idx) => {
-  const hoverEl = hovers.value[idx];
-  const pack = ensurePlugins();
-  if (!hoverEl || !pack?.gsap) return;
-  const { gsap } = pack;
-  gsap.to(hoverEl, { autoAlpha: 0, duration: 0.2, ease: "power2.out" });
+const onCursorEnter = (event) => {
+  if (event.pointerType === "touch") return;
+  const target = event.currentTarget;
+  if (!target) return;
+  target.style.setProperty("--cursor-opacity", "1");
+  const panel = target.closest(".work__panel");
+  panel?.classList.add("is-hovered");
 };
 
-const onPointerEnter = (idx) => {
-  const hoverEl = hovers.value[idx];
-  const pack = ensurePlugins();
-  if (!hoverEl || !pack?.gsap) return;
-  const { gsap } = pack;
-  gsap.set(hoverEl, { autoAlpha: 0 });
-  gsap.to(hoverEl, { autoAlpha: 1, duration: 0.2, ease: "power2.out" });
-  const dot = hoverEl.querySelector(".work__hover-dot");
-  const label = hoverEl.querySelector(".work__hover-label");
-  if (dot && label) {
-    gsap.fromTo(
-      [dot, label],
-      { y: 6, autoAlpha: 0 },
-      { y: 0, autoAlpha: 1, duration: 0.25, stagger: 0.06, ease: "power3.out" }
-    );
-  }
+const onCursorLeave = (event) => {
+  const target = event.currentTarget;
+  if (!target) return;
+  target.style.setProperty("--cursor-opacity", "0");
+  target.style.setProperty("--cursor-x", "-999px");
+  target.style.setProperty("--cursor-y", "-999px");
+  const panel = target.closest(".work__panel");
+  panel?.classList.remove("is-hovered");
+};
+
+const onCursorFocus = (event) => {
+  const target = event.currentTarget;
+  if (!target) return;
+  const rect = target.getBoundingClientRect();
+  const offset = 18;
+  const x = rect.width / 2 + offset;
+  const y = rect.height / 2 + offset;
+  target.style.setProperty("--cursor-x", `${x.toFixed(2)}px`);
+  target.style.setProperty("--cursor-y", `${y.toFixed(2)}px`);
+  target.style.setProperty("--cursor-opacity", "1");
+  const panel = target.closest(".work__panel");
+  panel?.classList.add("is-hovered");
 };
 
 onMounted(() => {
-  const pack = ensurePlugins();
-  hovers.value.forEach((hover, idx) => {
-    if (!hover) return;
-    if (!pack?.gsap) return;
-    pack.gsap.set(hover, { xPercent: 0, yPercent: 0 });
-    hoverX.value[idx] = pack.gsap.quickTo(hover, "x", { duration: 0.16, ease: "power3.out" });
-    hoverY.value[idx] = pack.gsap.quickTo(hover, "y", { duration: 0.16, ease: "power3.out" });
-  });
   buildParallax();
   resizeHandler = () => {
     clearTimeout(resizeTimer);
@@ -283,14 +295,23 @@ onBeforeUnmount(() => {
 .work__panels {
   display: flex;
   flex-direction: column;
-  gap: clamp(3rem, 6vw, 6rem);
+  gap: 0;
 }
 
 .work__panel {
   height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
   width: 100%;
   position: relative;
   overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+@supports (height: 100dvh) {
+  .work__panel {
+    height: 100dvh;
+  }
 }
 
 .work__bg {
@@ -307,24 +328,35 @@ onBeforeUnmount(() => {
   display: block;
   transform: translate3d(0, 0, 0);
   will-change: transform;
+  transition: filter 0.35s ease;
 }
 
-.work__link {
+.work__panel.is-hovered .work__bg-img {
+  filter: brightness(0.6) saturate(0.9);
+}
+
+.work__media-link {
   position: relative;
   z-index: 2;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   cursor: pointer;
+  --cursor-x: -999px;
+  --cursor-y: -999px;
+  --cursor-opacity: 0;
 }
 
 .work__meta {
   position: absolute;
   color: #fff;
-  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+  font-size: clamp(0.95rem, 1.8vw, 1rem);
   font-weight: 400;
   letter-spacing: 0.02em;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.2rem;
 }
 
 .work__meta--left {
@@ -340,7 +372,6 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
   line-height: 1.45;
   font-size: clamp(0.85rem, 1.4vw, 1rem);
-  opacity: 0.85;
 }
 
 .work__meta-mark {
@@ -353,56 +384,13 @@ onBeforeUnmount(() => {
 
 .work__media {
   position: relative;
-  width: min(68vw, 900px);
+  width: min(56vw, 660px);
   aspect-ratio: 16 / 9;
-  background: rgba(10, 10, 10, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 10, 0.65);
   box-shadow:
-    0 30px 80px rgba(0, 0, 0, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.25),
     0 6px 18px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-}
-
-.work__hover {
-  position: absolute;
-  left: 0;
-  top: 0;
-  pointer-events: none;
-  z-index: 2;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.work__hover-dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 999px;
-  background: #fff;
-  display: inline-block;
-  margin-right: 0.6rem;
-}
-
-.work__hover-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.9rem 1.4rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  background: #fff;
-  color: #000;
-  transform: translate3d(0, 0, 0);
-  transition: transform 0.35s ease;
-}
-
-.work__panel:hover .work__hover-label {
-  transform: translate3d(0, 0, 0) scale(1.02);
-}
-
-.work__panel:hover .work__hover {
-  opacity: 1;
 }
 
 .work__media img,
@@ -416,13 +404,42 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
+.work__cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 96px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: translate3d(calc(var(--cursor-x) - 50%), calc(var(--cursor-y) - 50%), 0);
+  opacity: var(--cursor-opacity, 0);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, background-color 0.2s ease;
+  z-index: 3;
+}
+
+@media (max-width: 767px) {
+  .work__cursor {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   .work__heading {
     margin-bottom: clamp(1.5rem, 6vw, 2.5rem);
   }
 
   .work__media {
-    width: min(88vw, 520px);
+    width: min(86vw, 520px);
     aspect-ratio: 4 / 3;
   }
 

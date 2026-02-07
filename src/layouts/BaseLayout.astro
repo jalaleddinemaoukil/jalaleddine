@@ -5,6 +5,8 @@ import Preloader from "../components/Preloader.astro";
 import SideNav from "../components/base/SideNav.vue";
 import iconUrl from "../assets/images/icon.svg";
 import profileImage from "../assets/images/profile.webp";
+import lenisScript from "../scripts/lenis.js?url";
+import mailtoScript from "../scripts/mailto.js?url";
 
 const iconUrlSrc = typeof iconUrl === "string" ? iconUrl : iconUrl.src;
 const profileImageSrc = typeof profileImage === "string" ? profileImage : profileImage.src;
@@ -21,6 +23,30 @@ const profileImageSrc = typeof profileImage === "string" ? profileImage : profil
     />
     <link rel="icon" type="image/svg+xml" href={iconUrlSrc} />
     <title>Jalal Eddine Maoukil</title>
+
+    <!-- Inline critical CSS -->
+    <style is:inline>
+      /* Critical above-the-fold styles */
+      html, body {
+        height: 100%;
+        margin: 0;
+        font-family: "Merriweather", Georgia, serif;
+      }
+      body {
+        background: #0a0a0a;
+        color: #fff;
+      }
+      .hero {
+        min-height: 100vh;
+        position: sticky;
+        top: 0;
+      }
+      .preloader {
+        position: fixed;
+        inset: 0;
+        z-index: 10002;
+      }
+    </style>
 
     <link rel="preload" as="image" href={profileImageSrc} fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,17 +76,7 @@ const profileImageSrc = typeof profileImage === "string" ? profileImage : profil
     <Preloader />
     <SideNav client:load />
     <slot />
-    <script>
-      import Lenis from "lenis";
-      const lenis = new Lenis({
-        lerp: 0.1,
-        duration: 1.5,
-      });
-      function raf(time: number) {
-        lenis.raf(time);
-        requestAnimationFrame(raf);
-      }
-      requestAnimationFrame(raf);
-    </script>
+    <script type="module" src={lenisScript} defer></script>
+    <script type="module" src={mailtoScript} defer></script>
   </body>
 </html>

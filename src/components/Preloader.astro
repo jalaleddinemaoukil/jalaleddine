@@ -3,6 +3,8 @@
  * Enhanced Preloader.astro - Pure JS Split with Original Quality
  */
 
+import { Image } from 'astro:assets';
+
 const PRELOADER_CONFIG = {
   ENTER_MS: 1100,
   PROGRESS_MS: 1400,
@@ -14,7 +16,6 @@ const PRELOADER_CONFIG = {
 
 const CONFIG_JSON = JSON.stringify(PRELOADER_CONFIG);
 import profileImage from "../assets/images/profile.webp";
-const profileImageSrc = typeof profileImage === "string" ? profileImage : profileImage.src;
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
@@ -24,7 +25,7 @@ const profileImageSrc = typeof profileImage === "string" ? profileImage : profil
   href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap"
 />
 
-<link rel="preload" as="image" href={profileImageSrc} />
+<link rel="preload" as="image" href={typeof profileImage === "string" ? profileImage : profileImage.src} />
 
 <div
   id="preloader"
@@ -38,21 +39,20 @@ const profileImageSrc = typeof profileImage === "string" ? profileImage : profil
   <div class="progress" aria-hidden="true">
     <div class="progress__track">
       <div class="progress__bar" data-progress-bar></div>
-      <div class="progress__glow" data-progress-glow></div>
     </div>
   </div>
 
   <div class="stage" aria-hidden="true">
-    <div class="stage__bg" data-stage-bg></div>
-
     <div class="frame" data-frame>
       <div class="frame__inner">
-        <img
+        <Image
           data-img
-          src={profileImageSrc}
+          src={profileImage}
           sizes="(max-width: 768px) 68vw, 25rem"
-          width="800"
-          height="800"
+          width={800}
+          height={800}
+          format="webp"
+          quality={80}
           decoding="async"
           fetchpriority="high"
           alt="Portfolio preview"
@@ -321,7 +321,7 @@ const profileImageSrc = typeof profileImage === "string" ? profileImage : profil
   }
 </style>
 
-<script type="module">
+<script type="module" defer>
   import { gsap } from "https://esm.sh/gsap@3.13.0";
   import { CustomEase } from "https://esm.sh/gsap@3.13.0/CustomEase";
 

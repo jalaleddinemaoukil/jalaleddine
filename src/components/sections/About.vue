@@ -7,14 +7,17 @@
         <div class="about__visual">
           <div ref="imageFrame" class="image-frame">
             <div ref="imageReveal" class="image-reveal">
-              <img
+              <video
                 ref="imageEl"
-                :src="profileImg"
-                alt="Jalal Eddine Maoukil - Senior Software Engineer & Web Designer"
                 class="about__image"
-                loading="lazy"
-                decoding="async"
-              />
+                :src="profileImg"
+                muted
+                loop
+                autoplay
+                playsinline
+                preload="metadata"
+                aria-hidden="true"
+              ></video>
             </div>
           </div>
         </div>
@@ -22,14 +25,14 @@
         <!-- Right: Content -->
         <div class="about__content">
           <!-- Heading (masked reveal) -->
-          <RevealText tag="h2" class="about__heading">
+          <RevealText tag="h2" class="about__heading" v-bind="revealProps">
             I design and engineer web applications that evolve with your business.
             Clean architecture. Solid foundations. Built to scale.
           </RevealText>
 
           <!-- Philosophy (masked reveal) -->
           <div class="philosophy">
-            <RevealText tag="p">
+            <RevealText tag="p" v-bind="revealProps">
               As a software engineer and web designer, I focus on clean architecture, performance, and usability because
               great websites should work flawlessly and feel effortless to use. I love web development for its unique
               ability to turn logic into experience, where code directly shapes how people interact with a brand.
@@ -65,9 +68,13 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import Button from "../base/Button.vue";
 import RevealText from "../base/RevealText.vue";
-import profileImage from "../../assets/images/profile.webp";
-
-const profileImg = typeof profileImage === "string" ? profileImage : profileImage.src;
+import profileVideo from "../../assets/videos/footage.mp4";
+const profileImg = typeof profileVideo === "string" ? profileVideo : profileVideo.src;
+const revealProps = {
+  splitReveal: "lines",
+  ease: "power3.out",
+  start: "top 85%",
+};
 
 const ensurePlugins = () => {
   if (typeof window === "undefined") return null;
@@ -317,9 +324,9 @@ onBeforeUnmount(() => {
 
 .about__image {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: -10% 0;
+  width: 125%;
+  height: 125%;
   object-fit: cover;
   display: block;
   filter: grayscale(100%) contrast(1.05);

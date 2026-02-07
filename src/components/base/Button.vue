@@ -5,7 +5,7 @@
     :to="to"
     :type="type"
     :disabled="disabled"
-    :aria-label="ariaLabel || label"
+    :aria-label="resolvedAriaLabel"
     class="btn-animate-chars"
     :class="customClass"
     :style="computedStyle"
@@ -56,6 +56,11 @@ export default {
     return { observer: null };
   },
   computed: {
+    resolvedAriaLabel() {
+      if (this.ariaLabel) return this.ariaLabel;
+      if (this.label) return this.label;
+      return undefined;
+    },
     computedStyle() {
       const px = (v) => (typeof v === "number" ? `${v}px` : v);
       const style = {

@@ -60,6 +60,19 @@ body {
   height: 100%;
 }
 
+/* Hide native scrollbars while preserving scroll */
+html,
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge Legacy */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 body {
   font-family: "Merriweather", Georgia, serif;
 }

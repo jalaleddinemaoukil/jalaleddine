@@ -1,13 +1,10 @@
 <template>
   <div class="sidenav" ref="root">
-    <!-- Fixed top bar -->
     <header class="sidenav__header" :class="{ 'is-blend': blend }">
-        <!-- LEFT: Brand / logo text -->
         <a :href="brandHref" class="sidenav__brand">
           {{ brand }}
         </a>
 
-        <!-- RIGHT: Menu toggle -->
         <button
           ref="menuButton"
           type="button"
@@ -25,7 +22,6 @@
         </button>
     </header>
 
-    <!-- Nav wrap -->
     <div
       id="sidenav-panel"
       class="sidenav__nav"
@@ -48,10 +44,11 @@
             <li class="sidenav__menu-list-item" v-for="(item, idx) in items" :key="item.href">
               <a
                 class="sidenav__menu-link"
-                :href="item.href"
+                :href="item.isMail ? '#contact' : item.href"
+                :data-mailto="item.isMail ? mailtoEncoded : null"
                 data-sidenav-link
                 :ref="(el) => setLinkRef(el, idx)"
-                @click.prevent="handleLinkClick(item.href)"
+                @click.prevent="handleLinkClick($event, item)"
               >
                 <p class="sidenav__menu-link-heading">{{ item.label }}</p>
                 <p class="sidenav__menu-link-eyebrow">{{ item.eyebrow ?? String(idx + 1).padStart(2, "0") }}</p>
@@ -71,7 +68,7 @@
                 class="sidenav__meta-link text-link"
                 :href="s.href"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 data-sidenav-fade
                 :ref="(el) => setFadeRef(el, i + 1)"
               >
@@ -88,6 +85,9 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
 
+const mailtoEncoded =
+  "&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#97;&#108;&#97;&#108;&#101;&#100;&#100;&#105;&#110;&#101;&#109;&#97;&#111;&#117;&#107;&#105;&#108;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;";
+
 const props = defineProps({
   brand: { type: String, default: "Jalal Eddine Maoukil" },
   brandHref: { type: String, default: "#hero" },
@@ -100,7 +100,7 @@ const props = defineProps({
       { label: "Works", href: "/works", eyebrow: "02" },
       { label: "About", href: "/about", eyebrow: "03" },
       { label: "Blog", href: "/blog", eyebrow: "04" },
-      { label: "Contact", href: "mailto:jalaleddinemaoukil@gmail.com", eyebrow: "05" },
+      { label: "Contact", href: "#contact", eyebrow: "05", isMail: true },
     ]),
   },
 
@@ -133,7 +133,6 @@ let tl = null;
 const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-/* Hover is handled via CSS now (text-shadow + bg scale). Removed JS hover handlers to match original behavior. */
 
 const getGSAP = () => {
   const gsap = window.gsap;
@@ -232,9 +231,15 @@ const onKeydown = (e) => {
   if (e.key === "Escape" && navState.value === "open") closeNav();
 };
 
-// Keeps your old behavior: close nav then navigate
-const handleLinkClick = (href) => {
+const decodeMailto = (encoded = "") =>
+  encoded.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+
+const handleLinkClick = (event, item) => {
   closeNav();
+  const target = event?.currentTarget;
+  const encoded = target?.getAttribute?.("data-mailto");
+  const href = encoded ? decodeMailto(encoded) : item?.href;
+  if (!href) return;
 
   // mailto
   if (href.startsWith("mailto:")) {
@@ -316,7 +321,7 @@ onBeforeUnmount(() => {
   mix-blend-mode: difference;
 }
 
-/* Menu button */
+
 .sidenav__button {
   background: transparent;
   border: none;
@@ -336,7 +341,7 @@ onBeforeUnmount(() => {
 }
 .sidenav__button-label {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: clamp(0.9em, 2vw, 1em);
   line-height: 1.4;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -348,13 +353,12 @@ onBeforeUnmount(() => {
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-weight: 700;
-  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 600;
+  font-size: clamp(0.9em, 2vw, 1em);
   opacity: 0.95;
   text-align: right;
 }
 
-/* Nav wrap - above Hero (1) and About (10) so menu overlays all sections */
 .sidenav__nav {
   z-index: 100;
   width: 100%;

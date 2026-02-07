@@ -2,13 +2,39 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/sections/Hero.vue";
 import About from "../components/sections/About.vue";
+import Services from "../components/sections/Services.vue";
 import Work from "../components/sections/Work.vue";
+
+const SANITY_PROJECT_ID = import.meta.env.SANITY_PROJECT_ID ?? "5x33ctz8";
+const SANITY_DATASET = import.meta.env.SANITY_DATASET ?? "production";
+const SANITY_API_VERSION = "2023-10-01";
+const SANITY_TOKEN = import.meta.env.SANITY_TOKEN;
+
+const workQuery =
+  '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,"src":videoSrc.asset->url,"bg":bgSrc.asset->url}';
+const encodedQuery = encodeURIComponent(workQuery);
+const apiHost = SANITY_TOKEN ? "api.sanity.io" : "apicdn.sanity.io";
+const queryUrl = `https://${SANITY_PROJECT_ID}.${apiHost}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`;
+
+let workItems = [];
+try {
+  const response = await fetch(queryUrl, SANITY_TOKEN ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } } : undefined);
+  if (response.ok) {
+    const data = await response.json();
+    if (Array.isArray(data?.result)) {
+      workItems = data.result.filter((item) => item?.src && item?.bg);
+    }
+  }
+} catch {
+  workItems = [];
+}
 ---
 
 <BaseLayout>
   <main>
     <Hero client:load />
     <About client:load />
-    <Work client:load />
+    <Work client:load items={workItems} />
+    <Services client:load />
   </main>
 </BaseLayout>
