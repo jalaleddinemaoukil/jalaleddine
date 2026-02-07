@@ -19,9 +19,11 @@
             class="work__bg-img"
             :src="item.bg"
             :alt="item.title"
+            :data-loaded="bgLoaded[idx] || false"
             width="1920"
             height="1080"
             loading="lazy"
+            fetchpriority="low"
             decoding="async"
           />
         </div>
@@ -33,13 +35,14 @@
         <a
           class="work__media-link"
           :href="item.href"
-          :aria-label="`Open ${item.title} live project`"
+          :aria-label="item.title ? `View ${item.title} project` : 'View project'"
           @pointermove="onCursorMove"
           @pointerenter="onCursorEnter"
           @pointerleave="onCursorLeave"
           @focus="onCursorFocus"
           @blur="onCursorLeave"
         >
+          <span class="sr-only">{{ item.title ? `View ${item.title} project` : "View project" }}</span>
           <div class="work__media" :ref="(el) => setMediaRef(el, idx)">
             <video
               :ref="(el) => setImageRef(el, idx)"
@@ -52,7 +55,12 @@
               playsinline
               preload="metadata"
               loading="lazy"
-            ></video>
+              aria-hidden="true"
+              role="presentation"
+              tabindex="-1"
+            >
+              <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
+            </video>
           </div>
           <span class="work__cursor" aria-hidden="true">View</span>
         </a>
@@ -114,8 +122,10 @@ const panels = ref([]);
 const images = ref([]);
 const medias = ref([]);
 const bgImages = ref([]);
+const bgLoaded = ref([]);
 let resizeTimer = null;
 let resizeHandler = null;
+let scrollHandler = null;
 
 const setPanelRef = (el, idx) => {
   if (!el) return;
@@ -135,6 +145,25 @@ const setMediaRef = (el, idx) => {
 const setBgRef = (el, idx) => {
   if (!el) return;
   bgImages.value[idx] = el;
+
+  // Mark as loaded when image loads
+  if (el && !bgLoaded.value[idx]) {
+    el.addEventListener("load", () => {
+      bgLoaded.value[idx] = true;
+    }, { once: true });
+  }
+};
+
+// Preload background images
+const preloadBackgrounds = () => {
+  if (typeof window === "undefined") return;
+  items.value.forEach((item, idx) => {
+    const img = new Image();
+    img.src = item.bg;
+    img.onload = () => {
+      bgLoaded.value[idx] = true;
+    };
+  });
 };
 
 const prefersReducedMotion = () =>
@@ -168,9 +197,15 @@ const buildParallax = () => {
   panels.value.forEach((panel, idx) => {
     const bg = bgImages.value[idx];
     const media = medias.value[idx];
-    if (!panel || !bg || !media) return;
+    
+    // Strict existence checks
+    if (!panel || !bg || !media) {
+      console.warn(`Work panel ${idx}: missing elements`, { panel: !!panel, bg: !!bg, media: !!media });
+      return;
+    }
 
     const amount = Math.round(window.innerHeight * 0.08);
+    
     gsap.fromTo(
       bg,
       { y: -amount, scale: 1.05 },
@@ -208,23 +243,81 @@ const buildParallax = () => {
   });
 };
 
+const cursorState = {
+  link: null,
+  cursor: null,
+  rect: null,
+  x: 0,
+  y: 0,
+  tx: 0,
+  ty: 0,
+  visible: false,
+  raf: null,
+};
+let cursorRectDirty = true;
+
+const updateCursorRect = () => {
+  if (!cursorState.link) return;
+  cursorState.rect = cursorState.link.getBoundingClientRect();
+  cursorRectDirty = false;
+};
+
+const setCursorTarget = (clientX, clientY) => {
+  const rect = cursorState.rect;
+  if (!rect) return;
+  const offset = 12;
+  cursorState.tx = clientX - rect.left + offset;
+  cursorState.ty = clientY - rect.top + offset;
+};
+
+const applyCursorStyle = () => {
+  if (!cursorState.cursor) return;
+  const lerp = 0.18;
+  cursorState.x += (cursorState.tx - cursorState.x) * lerp;
+  cursorState.y += (cursorState.ty - cursorState.y) * lerp;
+  const scale = cursorState.visible ? 1 : 0.86;
+  const opacity = cursorState.visible ? 1 : 0;
+  cursorState.cursor.style.opacity = `${opacity}`;
+  cursorState.cursor.style.transform = `translate3d(${cursorState.x}px, ${cursorState.y}px, 0) translate3d(-50%, -50%, 0) scale(${scale})`;
+};
+
+const startCursorLoop = () => {
+  if (cursorState.raf) return;
+  const tick = () => {
+    applyCursorStyle();
+    cursorState.raf = requestAnimationFrame(tick);
+  };
+  cursorState.raf = requestAnimationFrame(tick);
+};
+
+const stopCursorLoop = () => {
+  if (!cursorState.raf) return;
+  cancelAnimationFrame(cursorState.raf);
+  cursorState.raf = null;
+};
+
 const onCursorMove = (event) => {
-  if (event.pointerType === "touch") return;
-  const target = event.currentTarget;
-  if (!target) return;
-  const rect = target.getBoundingClientRect();
-  const offset = 18;
-  const x = event.clientX - rect.left + offset;
-  const y = event.clientY - rect.top + offset;
-  target.style.setProperty("--cursor-x", `${x.toFixed(2)}px`);
-  target.style.setProperty("--cursor-y", `${y.toFixed(2)}px`);
+  if (prefersReducedMotion() || event.pointerType === "touch") return;
+  if (!cursorState.link) return;
+  if (!cursorState.rect || cursorRectDirty) updateCursorRect();
+  setCursorTarget(event.clientX, event.clientY);
 };
 
 const onCursorEnter = (event) => {
-  if (event.pointerType === "touch") return;
+  if (prefersReducedMotion() || event.pointerType === "touch") return;
   const target = event.currentTarget;
   if (!target) return;
-  target.style.setProperty("--cursor-opacity", "1");
+  const cursor = target.querySelector(".work__cursor");
+  if (!cursor) return;
+  cursorState.link = target;
+  cursorState.cursor = cursor;
+  updateCursorRect();
+  cursorRectDirty = false;
+  setCursorTarget(event.clientX, event.clientY);
+  cursorState.x = cursorState.tx;
+  cursorState.y = cursorState.ty;
+  cursorState.visible = true;
+  startCursorLoop();
   const panel = target.closest(".work__panel");
   panel?.classList.add("is-hovered");
 };
@@ -232,41 +325,71 @@ const onCursorEnter = (event) => {
 const onCursorLeave = (event) => {
   const target = event.currentTarget;
   if (!target) return;
-  target.style.setProperty("--cursor-opacity", "0");
-  target.style.setProperty("--cursor-x", "-999px");
-  target.style.setProperty("--cursor-y", "-999px");
+  cursorState.visible = false;
+  if (cursorState.cursor) {
+    cursorState.cursor.style.opacity = "0";
+    cursorState.cursor.style.transform = `translate3d(${cursorState.x}px, ${cursorState.y}px, 0) translate3d(-50%, -50%, 0) scale(0.86)`;
+  }
+  cursorState.link = null;
+  cursorState.rect = null;
+  cursorRectDirty = true;
+  cursorState.cursor = null;
   const panel = target.closest(".work__panel");
   panel?.classList.remove("is-hovered");
+  stopCursorLoop();
 };
 
 const onCursorFocus = (event) => {
+  if (prefersReducedMotion()) return;
   const target = event.currentTarget;
   if (!target) return;
-  const rect = target.getBoundingClientRect();
-  const offset = 18;
-  const x = rect.width / 2 + offset;
-  const y = rect.height / 2 + offset;
-  target.style.setProperty("--cursor-x", `${x.toFixed(2)}px`);
-  target.style.setProperty("--cursor-y", `${y.toFixed(2)}px`);
-  target.style.setProperty("--cursor-opacity", "1");
+  const cursor = target.querySelector(".work__cursor");
+  if (!cursor) return;
+  cursorState.link = target;
+  cursorState.cursor = cursor;
+  updateCursorRect();
+  cursorRectDirty = false;
+  const rect = cursorState.rect;
+  if (rect) {
+    setCursorTarget(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    cursorState.x = cursorState.tx;
+    cursorState.y = cursorState.ty;
+  }
+  cursorState.visible = true;
+  startCursorLoop();
   const panel = target.closest(".work__panel");
   panel?.classList.add("is-hovered");
 };
 
 onMounted(() => {
-  buildParallax();
+  preloadBackgrounds();
+
+  // Delay parallax init to ensure DOM is ready
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      buildParallax();
+    }, 100);
+  });
+
   resizeHandler = () => {
     clearTimeout(resizeTimer);
+    cursorRectDirty = true;
     resizeTimer = setTimeout(() => {
       buildParallax();
       ensurePlugins()?.ScrollTrigger?.refresh?.();
     }, 150);
   };
   window.addEventListener("resize", resizeHandler, { passive: true });
+
+  scrollHandler = () => {
+    cursorRectDirty = true;
+  };
+  window.addEventListener("scroll", scrollHandler, { passive: true });
 });
 
 onBeforeUnmount(() => {
   if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+  if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
   clearTimeout(resizeTimer);
   const st = ensurePlugins()?.ScrollTrigger;
   st?.getAll?.().forEach((t) => {
@@ -319,6 +442,7 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  background: linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(10, 10, 15, 0.98));
 }
 
 .work__bg-img {
@@ -328,7 +452,14 @@ onBeforeUnmount(() => {
   display: block;
   transform: translate3d(0, 0, 0);
   will-change: transform;
-  transition: filter 0.35s ease;
+  transition:
+    filter 0.35s ease,
+    opacity 0.6s ease;
+  opacity: 0;
+}
+
+.work__bg-img[data-loaded="true"] {
+  opacity: 1;
 }
 
 .work__panel.is-hovered .work__bg-img {
@@ -343,9 +474,6 @@ onBeforeUnmount(() => {
   justify-content: center;
   text-decoration: none;
   cursor: pointer;
-  --cursor-x: -999px;
-  --cursor-y: -999px;
-  --cursor-opacity: 0;
 }
 
 .work__meta {
@@ -408,23 +536,38 @@ onBeforeUnmount(() => {
   position: absolute;
   left: 0;
   top: 0;
-  width: 96px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(0, 0, 0, 0.45);
+  width: 120px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background:
+    linear-gradient(135deg, rgba(20, 20, 20, 0.85), rgba(10, 10, 10, 0.65));
   color: #fff;
-  font-size: 0.6rem;
-  letter-spacing: 0.14em;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.55rem;
   pointer-events: none;
-  transform: translate3d(calc(var(--cursor-x) - 50%), calc(var(--cursor-y) - 50%), 0);
-  opacity: var(--cursor-opacity, 0);
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, background-color 0.2s ease;
+  transform: translate3d(-50%, -50%, 0) scale(0.86);
+  opacity: 0;
+  box-shadow:
+    0 16px 35px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  will-change: transform, opacity;
   z-index: 3;
+}
+
+.work__cursor::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  display: inline-block;
 }
 
 @media (max-width: 767px) {
@@ -446,5 +589,17 @@ onBeforeUnmount(() => {
   .work__meta--right {
     max-width: 60vw;
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

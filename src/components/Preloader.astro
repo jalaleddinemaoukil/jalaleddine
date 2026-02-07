@@ -25,7 +25,6 @@ import profileImage from "../assets/images/profile.webp";
   href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap"
 />
 
-<link rel="preload" as="image" href={typeof profileImage === "string" ? profileImage : profileImage.src} />
 
 <div
   id="preloader"
@@ -39,10 +38,12 @@ import profileImage from "../assets/images/profile.webp";
   <div class="progress" aria-hidden="true">
     <div class="progress__track">
       <div class="progress__bar" data-progress-bar></div>
+      <div class="progress__glow" data-progress-glow></div>
     </div>
   </div>
 
   <div class="stage" aria-hidden="true">
+    <div class="stage__bg" data-stage-bg></div>
     <div class="frame" data-frame>
       <div class="frame__inner">
         <Image
@@ -53,6 +54,7 @@ import profileImage from "../assets/images/profile.webp";
           height={800}
           format="webp"
           quality={80}
+          loading="eager"
           decoding="async"
           fetchpriority="high"
           alt="Portfolio preview"
@@ -426,6 +428,7 @@ import profileImage from "../assets/images/profile.webp";
       copyText: $("[data-copy-text]", preloader),
       sr: $("[data-sr-status]", preloader),
     };
+    const accents = [el.accentTop, el.accentBottom].filter(Boolean);
 
     const prevOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
@@ -467,26 +470,28 @@ import profileImage from "../assets/images/profile.webp";
         return;
       }
 
-      if (el.sr) el.sr.textContent = "Loading…";
+      if (el.sr) el.sr.textContent = "Loading...";
 
       const enter = (CONFIG.ENTER_MS || 1100) / 1000;
       const prog = (CONFIG.PROGRESS_MS || 1400) / 1000;
       const exit = (CONFIG.EXIT_MS || 850) / 1000;
 
       gsap.set(preloader, { opacity: 1, yPercent: 0, display: "block" });
-      gsap.set(el.stageBg, { opacity: 0 });
+      if (el.stageBg) gsap.set(el.stageBg, { opacity: 0 });
       gsap.set(el.wipe, { scaleY: 1, transformOrigin: "50% 100%" });
       gsap.set(el.img, { scale: 1.45, filter: "blur(8px) brightness(0.92)" });
       gsap.set(el.overlay, { opacity: 1 });
-      gsap.set([el.accentTop, el.accentBottom], {
-        scaleX: 0,
-        opacity: 0,
-        transformOrigin: "50% 50%",
-      });
+      if (accents.length) {
+        gsap.set(accents, {
+          scaleX: 0,
+          opacity: 0,
+          transformOrigin: "50% 50%",
+        });
+      }
       gsap.set(headingWords, { yPercent: 110 });
       gsap.set(copyWords, { yPercent: 110 });
-      gsap.set(el.bar, { scaleX: 0, transformOrigin: "0 50%" });
-      gsap.set(el.glow, { opacity: 0, x: -30 });
+      if (el.bar) gsap.set(el.bar, { scaleX: 0, transformOrigin: "0 50%" });
+      if (el.glow) gsap.set(el.glow, { opacity: 0, x: -30 });
 
       const tl = gsap.timeline({
         defaults: { ease: "osmoEase" },
@@ -496,11 +501,13 @@ import profileImage from "../assets/images/profile.webp";
         },
       });
 
-      tl.to(
-        el.stageBg,
-        { opacity: 1, duration: 0.35, ease: "power2.out" },
-        0.05,
-      );
+      if (el.stageBg) {
+        tl.to(
+          el.stageBg,
+          { opacity: 1, duration: 0.35, ease: "power2.out" },
+          0.05,
+        );
+      }
       tl.to(el.wipe, { scaleY: 0, duration: enter, ease: "power2.inOut" }, 0.0);
       tl.to(
         el.img,
@@ -518,44 +525,54 @@ import profileImage from "../assets/images/profile.webp";
         0.12,
       );
 
-      tl.to(
-        el.accentTop,
-        { scaleX: 1, opacity: 0.6, duration: 0.55, ease: "power2.inOut" },
-        0.32,
-      );
-      tl.to(
-        el.accentBottom,
-        { scaleX: 1, opacity: 0.6, duration: 0.55, ease: "power2.inOut" },
-        0.38,
-      );
+      if (el.accentTop) {
+        tl.to(
+          el.accentTop,
+          { scaleX: 1, opacity: 0.6, duration: 0.55, ease: "power2.inOut" },
+          0.32,
+        );
+      }
+      if (el.accentBottom) {
+        tl.to(
+          el.accentBottom,
+          { scaleX: 1, opacity: 0.6, duration: 0.55, ease: "power2.inOut" },
+          0.38,
+        );
+      }
 
       // Text reveal with osmo-style stagger
       tl.to(headingWords, { yPercent: 0, duration: 0.6, stagger: 0.11 }, 0.2);
       tl.to(copyWords, { yPercent: 0, duration: 0.6, stagger: 0.04 }, 0.4);
 
       // Progress
-      tl.to(el.bar, { scaleX: 1, duration: prog, ease: "power1.out" }, 0.6);
-      tl.to(
-        el.glow,
-        { opacity: 1, x: 0, duration: 0.22, ease: "power1.out" },
-        0.7,
-      );
-      tl.to(
-        el.glow,
-        { opacity: 0, x: 30, duration: 0.22, ease: "power1.in" },
-        1.0,
-      );
+      if (el.bar) {
+        tl.to(el.bar, { scaleX: 1, duration: prog, ease: "power1.out" }, 0.6);
+      }
+      if (el.glow) {
+        tl.to(
+          el.glow,
+          { opacity: 1, x: 0, duration: 0.22, ease: "power1.out" },
+          0.7,
+        );
+        tl.to(
+          el.glow,
+          { opacity: 0, x: 30, duration: 0.22, ease: "power1.in" },
+          1.0,
+        );
+      }
 
       // Exit - text animates out BEFORE final wipe for better UX
       tl.add(() => {
-        if (el.sr) el.sr.textContent = "Almost ready…";
+        if (el.sr) el.sr.textContent = "Almost ready...";
       }, ">-0.2");
       
-      tl.to(
-        [el.accentTop, el.accentBottom],
-        { opacity: 0, duration: 0.18, ease: "power2.out" },
-        ">-0.1",
-      );
+      if (accents.length) {
+        tl.to(
+          accents,
+          { opacity: 0, duration: 0.18, ease: "power2.out" },
+          ">-0.1",
+        );
+      }
 
       // Text exits earlier so user can read it
       tl.to(
@@ -581,11 +598,13 @@ import profileImage from "../assets/images/profile.webp";
         "<+0.05",
       );
 
-      tl.to(
-        el.stageBg,
-        { opacity: 0, duration: 0.25, ease: "power2.in" },
-        "<+0.05",
-      );
+      if (el.stageBg) {
+        tl.to(
+          el.stageBg,
+          { opacity: 0, duration: 0.25, ease: "power2.in" },
+          "<+0.05",
+        );
+      }
       tl.to(
         el.img,
         {

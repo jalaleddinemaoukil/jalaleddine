@@ -1,7 +1,7 @@
 <template>
   <div class="sidenav" ref="root">
     <header class="sidenav__header" :class="{ 'is-blend': blend }">
-        <a :href="brandHref" class="sidenav__brand">
+        <a :href="brandHref" class="sidenav__brand" :aria-label="brand">
           {{ brand }}
         </a>
 
@@ -46,6 +46,7 @@
                 class="sidenav__menu-link"
                 :href="item.isMail ? '#contact' : item.href"
                 :data-mailto="item.isMail ? mailtoEncoded : null"
+                :aria-label="item.label"
                 data-sidenav-link
                 :ref="(el) => setLinkRef(el, idx)"
                 @click.prevent="handleLinkClick($event, item)"
@@ -67,6 +68,7 @@
                 :key="s.href"
                 class="sidenav__meta-link text-link"
                 :href="s.href"
+                :aria-label="s.label"
                 target="_blank"
                 rel="noopener noreferrer"
                 data-sidenav-fade

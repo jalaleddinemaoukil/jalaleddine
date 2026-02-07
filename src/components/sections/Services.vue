@@ -77,13 +77,9 @@ What I do  </h2>
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
-import primaryImage from "../../assets/images/about-jalal-eddine-image.webp";
-import secondaryImage from "../../assets/images/profile.webp";
-
-const primarySrc =
-  typeof primaryImage === "string" ? primaryImage : primaryImage.src;
-const secondarySrc =
-  typeof secondaryImage === "string" ? secondaryImage : secondaryImage.src;
+const webImage = "/images/web.webp";
+const cloudImage = "/images/cloud.webp";
+const performanceImage = "/images/optimization.webp";
 
 const services = [
   {
@@ -92,7 +88,7 @@ const services = [
     subtitle: "Digital products people actually use",
     description:
       "Interfaces that feel intuitive. Backends that handle growth. Design decisions that drive conversions. I build web applications from concept to launch. No handoffs, no miscommunication, just cohesive products that work.",
-    imageSrc: primarySrc,
+    imageSrc: webImage,
     imageAlt: "Web Development & Design showcase",
   },
   {
@@ -101,7 +97,7 @@ const services = [
     subtitle: "Infrastructure that scales with you",
     description:
       "Real-time data processing. Serverless architectures. Systems that grow without the growing pains. Your infrastructure should enable your business, not slow it down.",
-    imageSrc: secondarySrc,
+    imageSrc: cloudImage,
     imageAlt: "Cloud Solutions infrastructure",
   },
   {
@@ -110,7 +106,7 @@ const services = [
     subtitle: "Speed that converts",
     description:
       "Fast load times. Clean code. Better user experience. I turn slow, bloated applications into lean, efficient ones. 30% faster isn't luck it's intentional optimization.",
-    imageSrc: primarySrc,
+    imageSrc: performanceImage,
     imageAlt: "Performance & Optimization metrics",
   },
 ];
@@ -179,6 +175,9 @@ const initMaskTextScrollReveal = () => {
   if (prefersReducedMotion()) return;
 
   document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+    // Ensure element exists and is visible
+    if (!heading || !heading.textContent?.trim()) return;
+
     // Show element before animating (prevents FOUC)
     gsap.set(heading, { autoAlpha: 1 });
 
@@ -202,6 +201,9 @@ const initMaskTextScrollReveal = () => {
       onSplit: function (splitInstance) {
         const targets = splitInstance[type];
         const config = splitConfig[type];
+
+        // Check if targets exist before animating
+        if (!targets || targets.length === 0) return;
 
         return gsap.from(targets, {
           yPercent: 110,
@@ -306,16 +308,18 @@ const buildParallaxAnimations = () => {
 
 onMounted(() => {
   nextTick(() => {
-    // Wait for fonts to load before splitting
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => {
+    // Add delay to ensure DOM is fully painted
+    setTimeout(() => {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          initMaskTextScrollReveal();
+          buildParallaxAnimations();
+        });
+      } else {
         initMaskTextScrollReveal();
         buildParallaxAnimations();
-      });
-    } else {
-      initMaskTextScrollReveal();
-      buildParallaxAnimations();
-    }
+      }
+    }, 50);
   });
 
   resizeHandler = () => {

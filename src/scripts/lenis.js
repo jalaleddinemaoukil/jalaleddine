@@ -4,7 +4,7 @@ const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.
 
 const lenis = new Lenis({
   lerp: 0.045,
-  duration: 1.7,
+  duration: 1.2,
   smoothWheel: !prefersReduced,
   smoothTouch: !prefersReduced,
   wheelMultiplier: 0.95,
@@ -38,5 +38,4 @@ const syncScrollTrigger = () => {
 attachRaf();
 syncScrollTrigger();
 
-// Expose for debugging/tuning in devtools.
 window.__lenis = lenis;

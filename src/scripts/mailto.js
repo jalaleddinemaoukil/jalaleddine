@@ -11,8 +11,15 @@ const applyMailto = () => {
   });
 };
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", applyMailto, { once: true });
-} else {
-  applyMailto();
-}
+const scheduleApply = () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(applyMailto);
+  });
+};
+
+// Run after islands hydrate to avoid Vue hydration mismatches.
+window.addEventListener("astro:page-load", scheduleApply, { passive: true });
+window.addEventListener("astro:after-swap", scheduleApply, { passive: true });
+window.addEventListener("load", scheduleApply, { once: true, passive: true });
+
+if (document.readyState === "complete") scheduleApply();

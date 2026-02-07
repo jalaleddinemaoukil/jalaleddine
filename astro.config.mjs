@@ -15,7 +15,11 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
-    
+    resolve: {
+      alias: {
+        '@': new URL('./src', import.meta.url).pathname,
+      },
+    },
     build: {
       // Enable CSS code splitting
       cssCodeSplit: true,

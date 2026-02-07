@@ -14,8 +14,11 @@
       playsinline
       preload="metadata"
       aria-hidden="true"
+      role="presentation"
+      tabindex="-1"
     >
       <source :src="heroVideo" type="video/webm" />
+      <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
       Your browser does not support the video tag.
     </video>
 

@@ -17,7 +17,11 @@
                 playsinline
                 preload="metadata"
                 aria-hidden="true"
-              ></video>
+                role="presentation"
+                tabindex="-1"
+              >
+                <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
+              </video>
             </div>
           </div>
         </div>
