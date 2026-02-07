@@ -49,7 +49,7 @@
               <span class="reveal">
                 <Button
                   tag="a"
-                  href="#contact"
+                  href="#" :data-mailto="mailtoEncoded"
                   width="clamp(280px, 100%, 420px)"
                   height="clamp(56px, 4vw, 72px)"
                   fontSize="clamp(14px, 1.8vw, 16px)"
@@ -73,6 +73,10 @@ import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import Button from "../base/Button.vue";
 import RevealText from "../base/RevealText.vue";
 import profileVideo from "../../assets/videos/footage.mp4";
+
+const mailtoEncoded =
+  "&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#97;&#108;&#97;&#108;&#101;&#100;&#100;&#105;&#110;&#101;&#109;&#97;&#111;&#117;&#107;&#105;&#108;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;";
+
 const profileImg = typeof profileVideo === "string" ? profileVideo : profileVideo.src;
 const revealProps = {
   splitReveal: "lines",
@@ -102,7 +106,11 @@ let resizeTimer = null;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ||
+    window.matchMedia?.("(pointer: coarse)")?.matches ||
+    navigator.connection?.saveData === true ||
+    (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4) ||
+    (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4));
 
 const showAll = () => {
   if (!aboutRef.value) return;
@@ -333,7 +341,6 @@ onBeforeUnmount(() => {
   height: 125%;
   object-fit: cover;
   display: block;
-  filter: grayscale(100%) contrast(1.05);
   will-change: transform;
 }
 

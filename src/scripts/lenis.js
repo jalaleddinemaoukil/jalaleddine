@@ -1,19 +1,29 @@
 import Lenis from "lenis";
 
 const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
+const saveData = navigator.connection?.saveData === true;
+const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
+const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
 
-const lenis = new Lenis({
-  lerp: 0.045,
-  duration: 1.2,
-  smoothWheel: !prefersReduced,
-  smoothTouch: !prefersReduced,
-  wheelMultiplier: 0.95,
-  touchMultiplier: 1.1,
-  normalizeWheel: true,
-  autoRaf: false,
-});
+const shouldUseLenis = !prefersReduced && !isCoarsePointer && !saveData && !lowMemory && !lowCpu;
+let lenis = null;
+
+if (shouldUseLenis) {
+  lenis = new Lenis({
+    lerp: 0.045,
+    duration: 1.1,
+    smoothWheel: true,
+    smoothTouch: false,
+    wheelMultiplier: 0.95,
+    touchMultiplier: 1.0,
+    normalizeWheel: true,
+    autoRaf: false,
+  });
+}
 
 const attachRaf = () => {
+  if (!lenis) return;
   if (window.gsap?.ticker) {
     window.gsap.ticker.add((t) => {
       lenis.raf(t * 1000);
@@ -31,6 +41,10 @@ const attachRaf = () => {
 
 const syncScrollTrigger = () => {
   if (!window.ScrollTrigger) return;
+  if (!lenis) {
+    window.ScrollTrigger.refresh();
+    return;
+  }
   lenis.on("scroll", window.ScrollTrigger.update);
   window.ScrollTrigger.refresh();
 };

@@ -321,25 +321,35 @@ import profileImage from "../assets/images/profile.webp";
     padding: 0;
     margin: -1px;
   }
+
+  .preloader.is-simple .progress__glow,
+  .preloader.is-simple .accent,
+  .preloader.is-simple .stage__bg,
+  .preloader.is-simple .wipe {
+    display: none;
+  }
+
+  .preloader.is-simple .frame__img {
+    filter: none;
+    transform: scale(1.1);
+  }
 </style>
 
 <script type="module" defer>
-  import { gsap } from "https://esm.sh/gsap@3.13.0";
-  import { CustomEase } from "https://esm.sh/gsap@3.13.0/CustomEase";
-
   const $ = (sel, root = document) => root.querySelector(sel);
   const PRELOADER_ID = "preloader";
   const GLOBAL_FLAG = "__preloader_running__";
-
-  gsap.registerPlugin(CustomEase);
-  CustomEase.create("osmoEase", "0.625, 0.05, 0, 1");
+  const EASE_FLAG = "__preloader_ease__";
 
   // ============================================
   // PURE JS TEXT SPLITTING (osmo.supply style)
   // ============================================
   function splitToMaskedWords(node) {
     if (!node) return [];
-    const text = (node.textContent || "").trim();
+    const original = node.dataset.originalText ?? node.textContent ?? "";
+    if (!node.dataset.originalText) node.dataset.originalText = original;
+    const text = original.trim();
+    if (!text) return [];
     node.textContent = "";
 
     const frag = document.createDocumentFragment();
@@ -369,6 +379,15 @@ import profileImage from "../assets/images/profile.webp";
     node.appendChild(frag);
     return targets;
   }
+
+  const waitForGsap = async (timeoutMs = 1200) => {
+    const start = performance.now();
+    while (performance.now() - start < timeoutMs) {
+      if (window.gsap) return { gsap: window.gsap, CustomEase: window.CustomEase };
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return { gsap: window.gsap, CustomEase: window.CustomEase };
+  };
 
   function getNavType() {
     try {
@@ -414,6 +433,11 @@ import profileImage from "../assets/images/profile.webp";
     } catch {}
 
     const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isCoarsePointer = matchMedia("(pointer: coarse)")?.matches;
+    const saveData = navigator.connection?.saveData === true;
+    const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
+    const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
+    const lowPower = reduceMotion || isCoarsePointer || saveData || lowMemory || lowCpu;
 
     const el = {
       bar: $("[data-progress-bar]", preloader),
@@ -427,6 +451,20 @@ import profileImage from "../assets/images/profile.webp";
       nameText: $("[data-name-text]", preloader),
       copyText: $("[data-copy-text]", preloader),
       sr: $("[data-sr-status]", preloader),
+    };
+    const showText = () => {
+      if (el.nameText) {
+        el.nameText.style.visibility = "visible";
+        if (!el.nameText.textContent?.trim() && el.nameText.dataset.originalText) {
+          el.nameText.textContent = el.nameText.dataset.originalText;
+        }
+      }
+      if (el.copyText) {
+        el.copyText.style.visibility = "visible";
+        if (!el.copyText.textContent?.trim() && el.copyText.dataset.originalText) {
+          el.copyText.textContent = el.copyText.dataset.originalText;
+        }
+      }
     };
     const accents = [el.accentTop, el.accentBottom].filter(Boolean);
 
@@ -452,6 +490,29 @@ import profileImage from "../assets/images/profile.webp";
     );
 
     (async () => {
+      if (lowPower) {
+        showText();
+        preloader.classList.add("is-simple");
+        window.clearTimeout(timeoutId);
+        setTimeout(() => finish("simple"), 450);
+        return;
+      }
+
+      const pack = await waitForGsap();
+      const gsap = pack?.gsap;
+      const CustomEase = pack?.CustomEase;
+      if (!gsap) {
+        showText();
+        window.clearTimeout(timeoutId);
+        finish("no-gsap");
+        return;
+      }
+      if (CustomEase?.create && !window[EASE_FLAG]) {
+        gsap.registerPlugin(CustomEase);
+        CustomEase.create("osmoEase", "0.625, 0.05, 0, 1");
+        window[EASE_FLAG] = true;
+      }
+
       try {
         await document.fonts?.ready;
       } catch {}
@@ -460,13 +521,13 @@ import profileImage from "../assets/images/profile.webp";
       } catch {}
 
       // Make visible and split text
-      gsap.set([el.nameText, el.copyText], { visibility: "visible" });
+      gsap.set([el.nameText, el.copyText].filter(Boolean), { visibility: "visible" });
       const headingWords = splitToMaskedWords(el.nameText);
       const copyWords = splitToMaskedWords(el.copyText);
-
-      if (reduceMotion) {
+      if (!headingWords.length && !copyWords.length) {
+        showText();
         window.clearTimeout(timeoutId);
-        finish("reduced-motion");
+        finish("split-failed");
         return;
       }
 
@@ -494,7 +555,7 @@ import profileImage from "../assets/images/profile.webp";
       if (el.glow) gsap.set(el.glow, { opacity: 0, x: -30 });
 
       const tl = gsap.timeline({
-        defaults: { ease: "osmoEase" },
+        defaults: { ease: window[EASE_FLAG] ? "osmoEase" : "power2.out" },
         onComplete: () => {
           window.clearTimeout(timeoutId);
           finish("completed");

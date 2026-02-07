@@ -36,7 +36,11 @@ let preloaderHandler = null;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ||
+    window.matchMedia?.("(pointer: coarse)")?.matches ||
+    navigator.connection?.saveData === true ||
+    (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4) ||
+    (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4));
 
 const ensurePlugins = () => {
   const g = typeof window !== "undefined" && window.gsap ? window.gsap : gsap;
