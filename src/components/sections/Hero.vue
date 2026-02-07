@@ -19,7 +19,6 @@
       Your browser does not support the video tag.
     </video>
 
-    <div class="hero__overlay" aria-hidden="true"></div>
 
     <div class="hero__content">
       <div class="hero__grid">
@@ -198,7 +197,7 @@ onBeforeUnmount(() => {
 .hero__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.85));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
   z-index: 1;
 }
 
