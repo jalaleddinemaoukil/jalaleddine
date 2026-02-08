@@ -333,6 +333,15 @@ import profileImage from "../assets/images/profile.webp";
     filter: none;
     transform: scale(1.1);
   }
+
+  .preloader.is-simple {
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .preloader.is-simple.is-exiting {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
 </style>
 
 <script type="module" defer>
@@ -494,7 +503,11 @@ import profileImage from "../assets/images/profile.webp";
         showText();
         preloader.classList.add("is-simple");
         window.clearTimeout(timeoutId);
-        setTimeout(() => finish("simple"), 450);
+        const MIN_SHOW_MS = 900;
+        setTimeout(() => {
+          preloader.classList.add("is-exiting");
+          setTimeout(() => finish("simple"), 380);
+        }, MIN_SHOW_MS);
         return;
       }
 

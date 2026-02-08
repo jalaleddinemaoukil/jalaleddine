@@ -1,7 +1,7 @@
 <template>
   <div class="sidenav" ref="root">
-    <header class="sidenav__header" :class="{ 'is-blend': blend }">
-        <a :href="brandHref" class="sidenav__brand" :aria-label="brand">
+    <header class="sidenav__header" :class="{ 'is-blend': blend, 'is-hidden': navHidden }">
+        <a :href="brandHref" class="sidenav__brand" :aria-label="brand" @click="handleBrandClick">
           {{ brand }}
         </a>
 
@@ -92,7 +92,7 @@ const mailtoEncoded =
 
 const props = defineProps({
   brand: { type: String, default: "Jalal Eddine Maoukil" },
-  brandHref: { type: String, default: "#hero" },
+  brandHref: { type: String, default: "/#hero" },
   blend: { type: Boolean, default: true },
 
   items: {
@@ -127,10 +127,13 @@ const panel2 = ref(null);
 const panel3 = ref(null);
 
 const navState = ref("closed"); // 'open' | 'closed'
+const navHidden = ref(false);
 const linkRefs = ref([]);
   const fadeRefs = ref([]);
 
 let tl = null;
+let lastScrollY = 0;
+let scrollRaf = null;
 
 const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -263,6 +266,29 @@ const handleLinkClick = (event, item) => {
   if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 250);
 };
 
+const handleBrandClick = (event) => {
+  const href = props.brandHref || "/#hero";
+  const isHome = window.location.pathname === "/" || window.location.pathname === "";
+
+  if (isHome && href.includes("#")) {
+    event?.preventDefault?.();
+    const hash = href.split("#")[1];
+    const target = hash ? `#${hash}` : "#hero";
+    const el = document.querySelector(target);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+      window.history.replaceState({}, "", target);
+    }
+    return;
+  }
+
+  // Not on home: redirect to home hero
+  if (!isHome) {
+    event?.preventDefault?.();
+    window.location.href = href.startsWith("/") ? href : `/${href.replace(/^#/, "#")}`;
+  }
+};
+
 onMounted(() => {
   const gsap = getGSAP();
   if (!gsap) return;
@@ -286,6 +312,32 @@ onMounted(() => {
   // No JS hover handlers: rely on CSS for link hover effect (matches original TSX)
 
   document.addEventListener("keydown", onKeydown);
+
+  lastScrollY = window.scrollY || 0;
+  const onScroll = () => {
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(() => {
+      const current = window.scrollY || 0;
+      const delta = current - lastScrollY;
+      const threshold = 10;
+
+      if (navState.value === "open") {
+        navHidden.value = false;
+      } else if (current <= 0) {
+        navHidden.value = false;
+      } else if (delta > threshold) {
+        navHidden.value = true;
+      } else if (delta < -threshold) {
+        navHidden.value = false;
+      }
+
+      lastScrollY = current;
+      scrollRaf = null;
+    });
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  if (root.value) root.value._onScroll = onScroll;
 });
 
 onBeforeUnmount(() => {
@@ -300,6 +352,13 @@ onBeforeUnmount(() => {
   tl?.kill();
   tl = null;
   lockScroll(false);
+
+  if (root.value && root.value._onScroll) {
+    window.removeEventListener("scroll", root.value._onScroll);
+    delete root.value._onScroll;
+  }
+  if (scrollRaf) cancelAnimationFrame(scrollRaf);
+  scrollRaf = null;
 });
 </script>
 
@@ -315,12 +374,20 @@ onBeforeUnmount(() => {
   left: clamp(20px, 4vw, 30px);
   right: clamp(20px, 4vw, 30px);
   pointer-events: none;
+  transition: transform 0.28s ease, opacity 0.28s ease;
+  will-change: transform, opacity;
 }
 .sidenav__header > * {
   pointer-events: auto;
 }
 .is-blend {
   mix-blend-mode: difference;
+}
+
+.sidenav__header.is-hidden {
+  transform: translate3d(0, -120%, 0);
+  opacity: 0;
+  pointer-events: none;
 }
 
 

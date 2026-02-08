@@ -147,6 +147,13 @@ const prefersReducedMotion = () =>
     (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4) ||
     (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4));
 
+const revealAllSplitHeadings = () => {
+  document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+    heading.style.visibility = "visible";
+    heading.style.opacity = "1";
+  });
+};
+
 const ensurePlugins = () => {
   if (typeof window === "undefined") return null;
   const gsap = window.gsap;
@@ -167,7 +174,10 @@ const splitConfig = {
 
 const initMaskTextScrollReveal = () => {
   const pack = ensurePlugins();
-  if (!pack || !pack.SplitText) return;
+  if (!pack || !pack.SplitText) {
+    revealAllSplitHeadings();
+    return;
+  }
   const { gsap, SplitText } = pack;
 
   // Clean up old instances
@@ -176,7 +186,10 @@ const initMaskTextScrollReveal = () => {
   });
   splitInstances = [];
 
-  if (prefersReducedMotion()) return;
+  if (prefersReducedMotion()) {
+    revealAllSplitHeadings();
+    return;
+  }
 
   document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
     // Ensure element exists and is visible
@@ -311,6 +324,9 @@ const buildParallaxAnimations = () => {
 };
 
 onMounted(() => {
+  if (prefersReducedMotion()) {
+    revealAllSplitHeadings();
+  }
   nextTick(() => {
     // Add delay to ensure DOM is fully painted
     setTimeout(() => {
@@ -506,6 +522,12 @@ onBeforeUnmount(() => {
 
 /* Support for reduced motion */
 @media (prefers-reduced-motion: reduce) {
+  [data-split="heading"] {
+    visibility: visible !important;
+  }
+}
+
+@media (pointer: coarse) {
   [data-split="heading"] {
     visibility: visible !important;
   }

@@ -4,6 +4,7 @@ import Hero from "../components/sections/Hero.vue";
 import About from "../components/sections/About.vue";
 import Services from "../components/sections/Services.vue";
 import Work from "../components/sections/Work.vue";
+import Footer from "../components/sections/Footer.vue";
 
 const SANITY_PROJECT_ID = import.meta.env.SANITY_PROJECT_ID ?? "5x33ctz8";
 const SANITY_DATASET = import.meta.env.SANITY_DATASET ?? "production";
@@ -36,5 +37,6 @@ try {
     <About client:load />
     <Work client:load items={workItems} />
     <Services client:load />
+    <Footer client:load />
   </main>
 </BaseLayout>
