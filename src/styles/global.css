@@ -31,6 +31,11 @@
   --tracking-body: 0.02em;
   --tracking-label: 0.12em;
 
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-base: 1.6;
+  --lh-relaxed: 1.75;
+
   --size-unit: 16;
   --size-container-ideal: 1440;
   --size-container-min: 992px;
@@ -180,4 +185,47 @@ textarea {
 /* Consistent vertical spacing between sections */
 .section {
   padding-block: clamp(56px, 8vw, 120px);
+}
+
+#page-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.page-wipe__panel {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.page-wipe__panel--white {
+  background: #ffffff;
+  transform: translateY(-100%);
+}
+
+.page-wipe__panel--black {
+  background: #000000;
+  transform: translateY(100%);
+}
+
+#page-wipe.is-entering .page-wipe__panel--white {
+  transform: translateY(0);
+}
+
+#page-wipe.is-enter .page-wipe__panel--white {
+  transition: transform 0.7s cubic-bezier(0.65, 0.05, 0, 1);
+  transform: translateY(-100%);
+}
+
+#page-wipe.is-exit .page-wipe__panel--black {
+  transition: transform 0.6s cubic-bezier(0.65, 0.05, 0, 1);
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-wipe {
+    display: none;
+  }
 }

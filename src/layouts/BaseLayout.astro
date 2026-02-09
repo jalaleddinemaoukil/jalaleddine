@@ -1,7 +1,6 @@
 ---
 import "../styles/global.css";
 import Preloader from "../components/Preloader.astro";
-import LenisInit from "../components/base/LenisInit.astro";
 // @ts-expect-error - Vue SFC with script setup is valid in Astro
 import SideNav from "../components/base/SideNav.vue";
 import iconUrl from "../assets/images/icon.svg";
@@ -145,6 +144,7 @@ const structuredDataJson = JSON.stringify(structuredData);
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.css" />
 
     <!-- Inline critical CSS -->
     <style is:inline>
@@ -183,15 +183,94 @@ const structuredDataJson = JSON.stringify(structuredData);
     <script
       src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"
       defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.min.js"
+      defer></script>
+
+    <script type="module">
+      const initLenis = () => {
+        if (!window.Lenis) {
+          setTimeout(initLenis, 50);
+          return;
+        }
+
+        const lenis = new window.Lenis({ autoRaf: true });
+        window.__lenis = lenis;
+
+        if (window.ScrollTrigger) {
+          lenis.on("scroll", window.ScrollTrigger.update);
+          window.ScrollTrigger.refresh();
+        }
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initLenis, { once: true });
+      } else {
+        initLenis();
+      }
+    </script>
+
+    <script type="module">
+      const wipe = document.getElementById("page-wipe");
+      const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      if (wipe && !prefersReduced) {
+        const enter = () => {
+          wipe.classList.add("is-entering");
+          requestAnimationFrame(() => {
+            wipe.classList.add("is-enter");
+            wipe.classList.remove("is-entering");
+            setTimeout(() => wipe.classList.remove("is-enter"), 720);
+          });
+        };
+
+        const exit = (href) => {
+          if (!href) return;
+          wipe.classList.add("is-exit");
+          setTimeout(() => {
+            window.location.href = href;
+          }, 620);
+        };
+
+        window.__pageWipeNavigate = (href) => {
+          if (!href || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
+          exit(href);
+          return true;
+        };
+
+        enter();
+
+        document.addEventListener(
+          "click",
+          (event) => {
+            const link = event.target?.closest?.("a");
+            if (!link) return;
+            if (link.hasAttribute("data-no-wipe")) return;
+            if (link.target && link.target !== "_self") return;
+            if (link.hasAttribute("download")) return;
+            const href = link.getAttribute("href") || "";
+            if (!href || href.startsWith("#")) return;
+            const url = new URL(href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+            if (url.pathname === window.location.pathname && url.hash) return;
+            event.preventDefault();
+            exit(url.href);
+          },
+          { capture: true }
+        );
+      }
+    </script>
 
     <script type="application/ld+json" is:inline>{structuredDataJson}</script>
    
   </head>
 
   <body>
+    <div id="page-wipe" aria-hidden="true">
+      <div class="page-wipe__panel page-wipe__panel--white"></div>
+      <div class="page-wipe__panel page-wipe__panel--black"></div>
+    </div>
     <Preloader />
     <SideNav client:load />
     <slot />
-    <LenisInit />
   </body>
 </html>

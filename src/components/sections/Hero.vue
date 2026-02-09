@@ -1,26 +1,5 @@
-<!-- src/components/Hero.vue -->
 <template>
   <section ref="heroRef" id="hero" data-nav="blend" class="hero" @copy.prevent @cut.prevent>
-    <div v-if="useShader" class="hero__shader" aria-hidden="true">
-      <div class="hero__shader-canvas" data-us-project="jYxrWzSRtsXNqZADHnVH"></div>
-    </div>
-
-    <video
-      v-else
-      class="hero__video"
-      autoplay
-      loop
-      muted
-      playsinline
-      preload="metadata"
-      aria-hidden="true"
-      role="presentation"
-      tabindex="-1"
-    >
-      <source :src="heroVideo" type="video/webm" />
-      <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
-      Your browser does not support the video tag.
-    </video>
 
 
     <div class="hero__content">
@@ -53,10 +32,7 @@
 import { onMounted, onBeforeUnmount, ref } from "vue";
 import Button from "../base/Button.vue";
 import RevealText from "../base/RevealText.vue";
-import heroVideo from "../../assets/videos/website-bg.webm";
-
 const heroRef = ref(null);
-const useShader = ref(true);
 let heroObserver = null;
 
 const mailtoEncoded =
@@ -66,92 +42,13 @@ const setViewportHeight = () => {
   document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
 };
 
-const supportsWebGL = () => {
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-  } catch {
-    return false;
-  }
-};
-
-const shouldDisableShader = () => {
-  if (!supportsWebGL()) return true;
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const saveData = navigator.connection?.saveData === true;
-  return reducedMotion || saveData;
-};
-
-const initUnicornStudio = () => {
-  if (!window.UnicornStudio || typeof window.UnicornStudio.init !== "function") return;
-  if (!window.UnicornStudio.isInitialized) {
-    window.UnicornStudio.init();
-    window.UnicornStudio.isInitialized = true;
-  }
-};
-
-const loadUnicornStudio = () =>
-  new Promise((resolve, reject) => {
-    if (window.UnicornStudio?.isInitialized) {
-      resolve();
-      return;
-    }
-
-    if (window.UnicornStudio?.init) {
-      initUnicornStudio();
-      resolve();
-      return;
-    }
-
-    if (!window.UnicornStudio) window.UnicornStudio = { isInitialized: false };
-
-    const existing = document.querySelector('script[data-unicornstudio]');
-    if (existing) {
-      existing.addEventListener("load", () => {
-        initUnicornStudio();
-        resolve();
-      }, { once: true });
-      existing.addEventListener("error", reject, { once: true });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js";
-    script.async = true;
-    script.setAttribute("data-unicornstudio", "true");
-    script.onload = () => {
-      initUnicornStudio();
-      resolve();
-    };
-    script.onerror = reject;
-    (document.head || document.body).appendChild(script);
-  });
-
 onMounted(() => {
   setViewportHeight();
   window.addEventListener("resize", setViewportHeight, { passive: true });
-
-  useShader.value = !shouldDisableShader();
-  if (!useShader.value || !heroRef.value) return;
-
-  heroObserver = new IntersectionObserver(
-    (entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
-        loadUnicornStudio().catch(() => {
-          useShader.value = false;
-        });
-        heroObserver?.disconnect();
-      }
-    },
-    { rootMargin: "200px 0px" }
-  );
-
-  heroObserver.observe(heroRef.value);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", setViewportHeight);
-  heroObserver?.disconnect();
 });
 </script>
 
@@ -166,42 +63,10 @@ onBeforeUnmount(() => {
   align-items: flex-end;
   min-height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
-  background-color: #0a0a0a;
-  color: #fff;
+  background-color: #ffffff;
+  color: #0b0b0b;
   user-select: none;
   pointer-events: none;
-}
-
-.hero__video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-}
-
-.hero__shader {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.hero__shader-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35));
-  z-index: 1;
 }
 
 .hero__content {
@@ -210,7 +75,7 @@ onBeforeUnmount(() => {
   height: 100%;
   width: 100%;
   pointer-events: none;
-  padding: 0 30px 30px 30px; /* 30px bottom padding, sides for spacing */
+  padding: 0 30px 30px 30px;
   display: flex;
   align-items: flex-end;
   will-change: transform, opacity;
@@ -225,7 +90,7 @@ onBeforeUnmount(() => {
 }
 
 .hero__heading {
-  font-size: var(--text-xl);
+  font-size: clamp(1.3em, 5vw, 2em);
   line-height: 1.2;
   font-weight: 400;
   text-transform: uppercase;
@@ -234,16 +99,15 @@ onBeforeUnmount(() => {
   width: 100%;
   overflow-wrap: anywhere;
   word-break: normal;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  text-shadow: none;
 }
 
-/* Masked line reveal: each line in a clip */
 .hero :deep(.line) {
   display: block;
   overflow: hidden;
   will-change: transform;
   transform: translate3d(0, 0, 0);
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  text-shadow: none;
 }
 
 
@@ -266,6 +130,11 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+}
+
+.hero :deep(.btn-animate-chars) {
+  --color-cta-bg: #0b0b0b;
+  --color-ink: #ffffff;
 }
 
 @media (min-width: 768px) {

@@ -1,8 +1,5 @@
 <template>
-  <footer ref="footerRef" id="footer" class="site-footer">
-    <div v-if="useShader" class="site-footer__shader" aria-hidden="true">
-      <div class="site-footer__shader-canvas" data-us-project="jYxrWzSRtsXNqZADHnVH"></div>
-    </div>
+  <footer ref="footerRef" id="footer" class="site-footer" :class="{ 'is-visible': isVisible }">
     <div class="site-footer__overlay" aria-hidden="true"></div>
     <div class="shell site-footer__content">
       <div class="site-footer__grid">
@@ -41,7 +38,7 @@
                 Explore
               </RevealText>
               <div class="site-footer__link-list">
-                <a class="site-footer__link" href="/#work">
+                <a class="site-footer__link" href="/works">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Work</RevealText>
                 </a>
                 <a class="site-footer__link" href="/#services">
@@ -90,12 +87,8 @@ import RevealText from "../base/RevealText.vue";
 import Button from "../base/Button.vue";
 
 const footerRef = ref(null);
-let tween = null;
-let resizeHandler = null;
+const isVisible = ref(false);
 let footerObserver = null;
-let loadHandler = null;
-let contentHandler = null;
-const useShader = ref(true);
 const mailtoEncoded =
   "&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#97;&#108;&#97;&#108;&#101;&#100;&#100;&#105;&#110;&#101;&#109;&#97;&#111;&#117;&#107;&#105;&#108;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;";
 
@@ -103,146 +96,24 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-const supportsWebGL = () => {
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-  } catch {
-    return false;
-  }
-};
-
-const shouldDisableShader = () => {
-  if (!supportsWebGL()) return true;
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const coarse = window.matchMedia("(pointer: coarse)").matches;
-  const saveData = navigator.connection?.saveData === true;
-  const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
-  const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
-  return reducedMotion || coarse || saveData || lowMemory || lowCpu;
-};
-
-const initUnicornStudio = () => {
-  if (!window.UnicornStudio || typeof window.UnicornStudio.init !== "function") return;
-  if (!window.UnicornStudio.isInitialized) {
-    window.UnicornStudio.init();
-    window.UnicornStudio.isInitialized = true;
-  }
-};
-
-const loadUnicornStudio = () =>
-  new Promise((resolve, reject) => {
-    if (window.UnicornStudio?.isInitialized) {
-      resolve();
-      return;
-    }
-
-    if (window.UnicornStudio?.init) {
-      initUnicornStudio();
-      resolve();
-      return;
-    }
-
-    if (!window.UnicornStudio) window.UnicornStudio = { isInitialized: false };
-
-    const existing = document.querySelector('script[data-unicornstudio]');
-    if (existing) {
-      existing.addEventListener(
-        "load",
-        () => {
-          initUnicornStudio();
-          resolve();
-        },
-        { once: true }
-      );
-      existing.addEventListener("error", reject, { once: true });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js";
-    script.async = true;
-    script.setAttribute("data-unicornstudio", "true");
-    script.onload = () => {
-      initUnicornStudio();
-      resolve();
-    };
-    script.onerror = reject;
-    (document.head || document.body).appendChild(script);
-  });
-
-const ensurePlugins = () => {
-  if (typeof window === "undefined") return null;
-  const gsap = window.gsap;
-  const ScrollTrigger = window.ScrollTrigger;
-  if (!gsap) return null;
-  if (ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
-  return { gsap, ScrollTrigger };
-};
-
-const buildFooterReveal = () => {
-  const pack = ensurePlugins();
-  if (!footerRef.value) return;
-  if (!pack?.gsap || !pack.ScrollTrigger) {
-    footerRef.value.style.setProperty("--progress", "1");
-    return;
-  }
-  const { gsap, ScrollTrigger } = pack;
-
-  tween?.scrollTrigger?.kill?.();
-  tween?.kill?.();
-  tween = null;
-
-  gsap.set(footerRef.value, { "--progress": 0 });
-
-  if (prefersReducedMotion()) {
-    gsap.set(footerRef.value, { "--progress": 1 });
-    return;
-  }
-
-  tween = gsap.to(footerRef.value, {
-    "--progress": 1,
-    ease: "none",
-    scrollTrigger: {
-      id: "footer-reveal",
-      trigger: footerRef.value,
-      start: "top bottom",
-      end: "bottom bottom",
-      scrub: true,
-      invalidateOnRefresh: true,
-    },
-  });
-};
-
-const refreshFooter = () => {
-  buildFooterReveal();
-  ensurePlugins()?.ScrollTrigger?.refresh?.();
-  window.__lenis?.resize?.();
-};
 
 onMounted(() => {
-  buildFooterReveal();
-  resizeHandler = () => {
-    refreshFooter();
-  };
-  window.addEventListener("resize", resizeHandler, { passive: true });
-  loadHandler = () => refreshFooter();
-  contentHandler = () => refreshFooter();
-  window.addEventListener("load", loadHandler, { once: true, passive: true });
-  window.addEventListener("content:loaded", contentHandler, { passive: true });
-
-  useShader.value = !shouldDisableShader();
-  if (useShader.value && footerRef.value) {
+  if (prefersReducedMotion()) {
+    isVisible.value = true;
+  }
+  if (footerRef.value) {
     footerObserver = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
-          loadUnicornStudio().catch(() => {
-            useShader.value = false;
+          isVisible.value = true;
+          requestAnimationFrame(() => {
+            window.__lenis?.resize?.();
+            window.dispatchEvent(new Event("content:loaded"));
           });
           footerObserver?.disconnect();
         }
       },
-      { rootMargin: "200px 0px" }
+      { rootMargin: "160px 0px -10% 0px", threshold: 0.15 }
     );
 
     footerObserver.observe(footerRef.value);
@@ -250,56 +121,27 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  if (resizeHandler) window.removeEventListener("resize", resizeHandler);
-  if (loadHandler) window.removeEventListener("load", loadHandler);
-  if (contentHandler) window.removeEventListener("content:loaded", contentHandler);
   footerObserver?.disconnect();
-  tween?.scrollTrigger?.kill?.();
-  tween?.kill?.();
-  tween = null;
 });
 </script>
 
 <style scoped>
-@property --progress {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
 .site-footer {
-  --progress: 0;
   position: relative;
   min-height: 100vh;
-  background: radial-gradient(120% 120% at 15% 10%, #68b4ff 0%, #3687ff 45%, #0b2c6b 100%);
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #0b0b0b;
   overflow: visible;
   z-index: 12;
   isolation: isolate;
 }
 
-.site-footer__shader {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.site-footer__shader-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
 .site-footer__overlay {
   position: absolute;
   inset: 0;
-  background: #000000;
-  opacity: calc(1 - var(--progress));
-  transition: opacity 0.1s linear;
+  background: #ffffff;
+  opacity: 0.7;
+  transition: opacity 0.6s ease;
   z-index: 1;
 }
 
@@ -312,9 +154,14 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   gap: clamp(2rem, 5vw, 3.5rem);
   padding: clamp(4rem, 12vw, 7rem) clamp(16px, 2.2vw, 32px) clamp(3rem, 8vw, 5rem);
-  transform: translate3d(0, calc(36px * (1 - var(--progress))), 0);
-  opacity: calc(0.55 + 0.45 * var(--progress));
-  will-change: transform, opacity;
+  transform: translate3d(0, 32px, 0) scale(0.985);
+  opacity: 0;
+  filter: blur(6px);
+  transition:
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.1, 1),
+    opacity 0.7s ease,
+    filter 0.7s ease;
+  will-change: transform, opacity, filter;
 }
 
 .site-footer__grid {
@@ -433,7 +280,7 @@ onBeforeUnmount(() => {
 }
 
 .site-footer__link:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.65);
+  outline: 2px solid rgba(0, 0, 0, 0.5);
   outline-offset: 3px;
 }
 
@@ -448,8 +295,36 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.site-footer :deep(.btn-animate-chars) {
+  --color-cta-bg: #0b0b0b;
+  --color-ink: #ffffff;
+}
+
 .site-footer :deep(.line) {
   display: block;
+}
+
+.site-footer.is-visible .site-footer__overlay {
+  opacity: 0;
+}
+
+.site-footer.is-visible .site-footer__content {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer__content {
+    transition: none;
+    transform: none;
+    opacity: 1;
+    filter: none;
+  }
+  .site-footer__overlay {
+    transition: none;
+    opacity: 0;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -468,6 +343,18 @@ onBeforeUnmount(() => {
   .site-footer__links {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: clamp(1.5rem, 6vw, 3.5rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-footer {
+    min-height: 80vh;
+  }
+
+  .site-footer__content {
+    min-height: 80vh;
+    padding-top: clamp(3.5rem, 7vw, 5.5rem);
+    padding-bottom: clamp(2.5rem, 6vw, 4rem);
   }
 }
 </style>

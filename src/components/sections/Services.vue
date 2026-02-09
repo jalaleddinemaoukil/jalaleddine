@@ -128,7 +128,6 @@ const ensurePlugins = () => {
   return { gsap, ScrollTrigger, SplitText };
 };
 
-// SplitText configuration
 const splitConfig = {
   lines: { duration: 0.8, stagger: 0.08 },
   words: { duration: 0.6, stagger: 0.06 },
@@ -143,7 +142,6 @@ const initMaskTextScrollReveal = () => {
   }
   const { gsap, SplitText } = pack;
 
-  // Clean up old instances
   splitInstances.forEach((instance) => {
     if (instance && instance.revert) instance.revert();
   });
@@ -155,13 +153,10 @@ const initMaskTextScrollReveal = () => {
   }
 
   document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
-    // Ensure element exists and is visible
     if (!heading || !heading.textContent?.trim()) return;
 
-    // Show element before animating (prevents FOUC)
     gsap.set(heading, { autoAlpha: 1 });
 
-    // Find the split type, default is 'lines'
     const type = heading.dataset.splitReveal || "lines";
     const typesToSplit =
       type === "lines"
@@ -170,7 +165,6 @@ const initMaskTextScrollReveal = () => {
           ? ["lines", "words"]
           : ["lines", "words", "chars"];
 
-    // Split the text
     const instance = SplitText.create(heading, {
       type: typesToSplit.join(", "),
       mask: "lines",
@@ -182,7 +176,6 @@ const initMaskTextScrollReveal = () => {
         const targets = splitInstance[type];
         const config = splitConfig[type];
 
-        // Check if targets exist before animating
         if (!targets || targets.length === 0) return;
 
         return gsap.from(targets, {
@@ -209,7 +202,6 @@ const buildParallaxAnimations = () => {
   const { gsap, ScrollTrigger } = pack;
   if (!ScrollTrigger) return;
 
-  // Kill old parallax triggers
   ScrollTrigger.getAll().forEach((t) => {
     if (String(t?.vars?.id || "").startsWith("services-")) {
       t.kill(true);
@@ -291,7 +283,6 @@ onMounted(() => {
     revealAllSplitHeadings();
   }
   nextTick(() => {
-    // Add delay to ensure DOM is fully painted
     setTimeout(() => {
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(() => {
@@ -496,9 +487,26 @@ onBeforeUnmount(() => {
     min-height: clamp(240px, 48vh, 420px);
     height: auto;
   }
+
+  .services__list {
+    margin-top: clamp(2rem, 7vw, 3.5rem);
+  }
+
+  .service__eyebrow {
+    font-size: clamp(0.7rem, 3vw, 0.85rem);
+  }
+
+  .service__title {
+    font-size: clamp(1.6rem, 6vw, 2.2rem);
+    line-height: 1.2;
+  }
+
+  .service__desc {
+    font-size: clamp(0.95rem, 4vw, 1.05rem);
+    line-height: 1.65;
+  }
 }
 
-/* Support for reduced motion */
 @media (prefers-reduced-motion: reduce) {
   [data-split="heading"] {
     visibility: visible !important;

@@ -255,8 +255,8 @@ const handleLinkClick = (event, item) => {
   // internal route
   if (href.startsWith("/")) {
     setTimeout(() => {
-      window.history.pushState({}, "", href);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      const handled = window.__pageWipeNavigate?.(href);
+      if (!handled) window.location.href = href;
     }, 250);
     return;
   }
@@ -267,25 +267,32 @@ const handleLinkClick = (event, item) => {
 };
 
 const handleBrandClick = (event) => {
+  event?.preventDefault?.();
   const href = props.brandHref || "/#hero";
   const isHome = window.location.pathname === "/" || window.location.pathname === "";
 
+  if (navState.value === "open") closeNav();
+
   if (isHome && href.includes("#")) {
-    event?.preventDefault?.();
     const hash = href.split("#")[1];
     const target = hash ? `#${hash}` : "#hero";
     const el = document.querySelector(target);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-      window.history.replaceState({}, "", target);
-    }
+    requestAnimationFrame(() => {
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        window.history.replaceState({}, "", target);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.history.replaceState({}, "", "#hero");
+      }
+    });
     return;
   }
 
   // Not on home: redirect to home hero
   if (!isHome) {
-    event?.preventDefault?.();
-    window.location.href = href.startsWith("/") ? href : `/${href.replace(/^#/, "#")}`;
+    const next = href.startsWith("/") ? href : `/${href.replace(/^#/, "#")}`;
+    window.location.href = next;
   }
 };
 
@@ -514,7 +521,7 @@ onBeforeUnmount(() => {
   color: #131313;
   width: 100%;
   padding: clamp(0.5em, 2vh, 0.75em) 0;
-  padding-left: clamp(1.25em, 4vw, 1.75em);
+  padding-left: clamp(1em, 4vw, 1.75em);
   text-decoration: none;
   display: flex;
   gap: 0.75em;
@@ -525,7 +532,7 @@ onBeforeUnmount(() => {
 .sidenav__menu-link-heading {
   margin: 0;
   color: #131313;
-  font-size: 3.3em;
+  font-size: clamp(2.9rem, 12vw, 3.3rem);
   font-weight: 600;
   line-height: 0.85;
   letter-spacing: var(--tracking-display, -0.015em);

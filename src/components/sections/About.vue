@@ -1,9 +1,7 @@
-<!-- src/components/About.vue -->
 <template>
   <section id="about" ref="aboutRef" class="about section">
     <div class="shell">
       <div class="about__grid">
-        <!-- Left: Image -->
         <div class="about__visual">
           <div ref="imageFrame" class="image-frame">
             <div ref="imageReveal" class="image-reveal">
@@ -26,15 +24,12 @@
           </div>
         </div>
 
-        <!-- Right: Content -->
         <div class="about__content">
-          <!-- Heading (masked reveal) -->
           <RevealText tag="h2" class="about__heading" v-bind="revealProps">
             I design and engineer web applications that evolve with your business.
             Clean architecture. Solid foundations. Built to scale.
           </RevealText>
 
-          <!-- Philosophy (masked reveal) -->
           <div class="philosophy">
             <RevealText tag="p" v-bind="revealProps">
               As a software engineer and web designer, I focus on clean architecture, performance, and usability because
@@ -43,7 +38,6 @@
             </RevealText>
           </div>
 
-          <!-- CTA (masked reveal) -->
           <div ref="ctaRef" class="cta-wrapper">
             <span class="mask">
               <span class="reveal">
@@ -182,7 +176,6 @@ const buildAnimation = async () => {
       },
     });
 
-    // Image reveal
     if (imageFrame.value && imageReveal.value && imageEl.value) {
       tl.from(
         imageFrame.value,
@@ -202,7 +195,6 @@ const buildAnimation = async () => {
         );
     }
 
-    // CTA
     if (ctaReveal) {
       tl.from(
         ctaReveal,
@@ -211,7 +203,6 @@ const buildAnimation = async () => {
       );
     }
 
-    // Parallax on image
     if (imageEl.value) {
       const parallaxAmount = window.innerWidth > 991 ? 6 : 3;
       gsap.fromTo(
@@ -394,7 +385,6 @@ onBeforeUnmount(() => {
   color: var(--color-ink);
 }
 
-/* Philosophy */
 .philosophy {
   max-width: 580px;
 }
@@ -408,15 +398,11 @@ onBeforeUnmount(() => {
   letter-spacing: var(--tracking-body);
 }
 
-/* Skills */
-/* CTA */
+
 .cta-wrapper {
   margin-top: clamp(0.5rem, 1vw, 1rem);
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
 
 @media screen and (max-width: 991px) {
   .about > .shell {

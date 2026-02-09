@@ -428,7 +428,6 @@ onMounted(() => {
     scheduleScrollRefresh();
   }
 
-  // Delay parallax init to ensure DOM is ready
   requestAnimationFrame(() => {
     setTimeout(() => {
       buildParallax();
@@ -544,6 +543,7 @@ onBeforeUnmount(() => {
 
 .work__meta {
   position: absolute;
+  z-index: 2;
   color: #fff;
   font-size: var(--text-sm);
   font-weight: 400;
@@ -647,13 +647,64 @@ onBeforeUnmount(() => {
     margin-bottom: clamp(1.5rem, 6vw, 2.5rem);
   }
 
+  .work__panel {
+    height: 92svh;
+    min-height: calc(var(--vh, 1vh) * 92);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: clamp(1.6rem, 5vw, 2.4rem) clamp(1.1rem, 4.5vw, 1.8rem);
+  }
+
+  .work__media-link {
+    width: 100%;
+    justify-content: center;
+    order: 2;
+  }
+
   .work__media {
-    width: min(86vw, 520px);
-    aspect-ratio: 4 / 3;
+    width: min(90vw, 560px);
+    aspect-ratio: 16 / 9;
+    margin-inline: auto;
+  }
+
+  .work__meta {
+    position: relative;
+    width: min(90vw, 560px);
+    align-self: center;
+    font-size: clamp(0.75rem, 2.6vw, 0.9rem);
+    padding: 0.4rem 0.6rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .work__meta--left {
+    order: 0;
+    top: auto;
+    left: auto;
+    right: auto;
   }
 
   .work__meta--right {
-    max-width: 60vw;
+    max-width: min(90vw, 560px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    order: 1;
+    top: auto;
+    left: auto;
+    right: auto;
+  }
+
+  .work__meta-mark {
+    display: none;
+  }
+
+  .work__meta-copy {
+    text-align: center;
   }
 }
 

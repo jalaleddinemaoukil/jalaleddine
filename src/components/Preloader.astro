@@ -411,8 +411,17 @@ import profileImage from "../assets/images/profile.webp";
     const navType = getNavType();
     const isReload = navType === "reload";
     const isBackForward = navType === "back_forward";
+    const isHome = window.location.pathname === "/" || window.location.pathname === "";
 
     if (isBackForward) {
+      preloader.style.display = "none";
+      preloader.setAttribute("aria-hidden", "true");
+      window[GLOBAL_FLAG] = false;
+      return;
+    }
+
+    // Only show preloader on first home load or hard reloads.
+    if (!isHome) {
       preloader.style.display = "none";
       preloader.setAttribute("aria-hidden", "true");
       window[GLOBAL_FLAG] = false;
@@ -712,9 +721,6 @@ import profileImage from "../assets/images/profile.webp";
 
   runPreloaderOnce();
   window.addEventListener("astro:page-load", runPreloaderOnce, {
-    passive: true,
-  });
-  window.addEventListener("astro:after-swap", runPreloaderOnce, {
     passive: true,
   });
 

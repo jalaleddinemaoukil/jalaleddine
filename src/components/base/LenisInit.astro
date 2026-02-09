@@ -9,11 +9,17 @@
   const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
   const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
 
-  const shouldUseLenis = !prefersReduced && !isCoarsePointer && !saveData && !lowMemory && !lowCpu;
+  const disableLenis = true;
+  const shouldUseLenis = !disableLenis && !prefersReduced && !isCoarsePointer && !saveData && !lowMemory && !lowCpu;
   let lenis = null;
+  let resizeObserver = null;
 
   if (shouldUseLenis) {
+    const wrapper = window;
+    const content = document.body;
     lenis = new Lenis({
+      wrapper,
+      content,
       lerp: 0.045,
       duration: 1.1,
       smoothWheel: true,
@@ -22,6 +28,7 @@
       touchMultiplier: 1.0,
       normalizeWheel: true,
       autoRaf: false,
+      autoResize: true,
     });
   }
 
@@ -83,6 +90,13 @@
     refreshAll();
     unlockIfNavClosed();
   }, { passive: true });
+
+  if (lenis && "ResizeObserver" in window) {
+    resizeObserver = new ResizeObserver(() => {
+      refreshAll();
+    });
+    resizeObserver.observe(document.body);
+  }
 
   window.__lenis = lenis;
 </script>
