@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
 .hero__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35));
   z-index: 1;
 }
 
@@ -225,11 +225,12 @@ onBeforeUnmount(() => {
 }
 
 .hero__heading {
-  font-size: clamp(20px, 3.1vw, 28px);
-  line-height: 1.35;
-  font-weight: 300;
+  font-size: var(--text-xl);
+  line-height: 1.2;
+  font-weight: 400;
+  text-transform: uppercase;
   margin: 0;
-  max-width: 39ch;
+  max-width: 41ch;
   width: 100%;
   overflow-wrap: anywhere;
   word-break: normal;

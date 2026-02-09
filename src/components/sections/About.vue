@@ -294,9 +294,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* ============================================
-   ABOUT SECTION - OVERLAYS HERO
-   ============================================ */
 
 .about {
   position: relative;
@@ -319,10 +316,6 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-/* ============================================
-   MASK REVEAL UTILITIES
-   ============================================ */
-
 .mask {
   display: block;
   overflow: hidden;
@@ -343,10 +336,6 @@ onBeforeUnmount(() => {
 .philosophy .reveal {
   display: inline;
 }
-
-/* ============================================
-   LEFT: CINEMATIC IMAGE
-   ============================================ */
 
 .about__visual {
   position: relative;
@@ -385,9 +374,6 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-/* ============================================
-   RIGHT: CONTENT
-   ============================================ */
 
 .about__content {
   display: flex;
@@ -398,12 +384,13 @@ onBeforeUnmount(() => {
 }
 
 .about__heading {
-  font-family: "Merriweather", Georgia, serif;
-  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
-  line-height: 1.45;
+  font-family: var(--font-main);
+  font-size: var(--text-xl);
+  line-height: 1.2;
+  text-transform: uppercase;
   font-weight: 400;
   margin: 0;
-  letter-spacing: -0.015em;
+  letter-spacing: var(--tracking-display);
   color: var(--color-ink);
 }
 
@@ -413,14 +400,15 @@ onBeforeUnmount(() => {
 }
 
 .philosophy p {
-  font-size: clamp(1.0625rem, 2vw, 1.1875rem);
-  line-height: 1.75;
-  font-weight: 300;
+  font-size: var(--text-base);
+  line-height: var(--lh-relaxed);
+  font-weight: 400;
   color: rgba(0, 0, 0, 0.7);
   margin: 0;
-  letter-spacing: 0.005em;
+  letter-spacing: var(--tracking-body);
 }
 
+/* Skills */
 /* CTA */
 .cta-wrapper {
   margin-top: clamp(0.5rem, 1vw, 1rem);
@@ -461,7 +449,7 @@ onBeforeUnmount(() => {
 
 @media screen and (max-width: 767px) {
   .about__heading {
-    font-size: clamp(1.5rem, 3vw, 1.875rem);
+    font-size: var(--text-lg);
   }
 }
 

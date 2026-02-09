@@ -362,24 +362,26 @@ onBeforeUnmount(() => {
 
 .services__eyebrow {
   text-transform: uppercase;
-  font-size: clamp(0.6rem, 1vw, 0.75rem);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
   color: rgba(255, 255, 255, 0.7);
   margin: 0;
 }
 
 .services__heading {
-  font-size: clamp(2.2rem, 5.6vw, 4.6rem);
-  line-height: 1.05;
+  font-size: var(--text-4xl);
+  line-height: var(--lh-tight);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-display);
   text-transform: uppercase;
 }
 
 .services__subhead {
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  line-height: 1.6;
+  font-size: var(--text-lg);
+  line-height: var(--lh-base);
   color: rgba(255, 255, 255, 0.72);
   margin: 0;
+  letter-spacing: var(--tracking-body);
 }
 
 .services__list {
@@ -392,10 +394,10 @@ onBeforeUnmount(() => {
 
 
 .work__heading {
-  font-size: clamp(2.5rem, 7vw, 5.5rem);
-  line-height: 1;
+  font-size: var(--text-4xl);
+  line-height: var(--lh-tight);
   margin: 0 0 clamp(2rem, 5vw, 4rem);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-display);
   text-transform: uppercase;
 }
 
@@ -427,17 +429,19 @@ onBeforeUnmount(() => {
 }
 
 .service__title {
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  line-height: 1.2;
+  font-size: var(--text-2xl);
+  line-height: var(--lh-snug);
   margin: 0;
+  letter-spacing: var(--tracking-display);
   text-transform: uppercase;
 }
 
 .service__desc {
-  font-size: clamp(1rem, 1.6vw, 1.15rem);
-  line-height: 1.7;
+  font-size: var(--text-base);
+  line-height: var(--lh-relaxed);
   margin: 0;
   opacity: 0.85;
+  letter-spacing: var(--tracking-body);
 }
 
 .service__media {

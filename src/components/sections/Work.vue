@@ -474,10 +474,10 @@ onBeforeUnmount(() => {
 }
 
 .work__heading {
-  font-size: clamp(2.5rem, 7vw, 5.5rem);
-  line-height: 1;
+  font-size: var(--text-4xl);
+  line-height: var(--lh-tight);
   margin: 0 0 clamp(2rem, 5vw, 4rem);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-display);
   text-transform: uppercase;
 }
 
@@ -488,7 +488,7 @@ onBeforeUnmount(() => {
 }
 
 .work__panel {
-  height: 100vh;
+  height: 120vh;
   min-height: calc(var(--vh, 1vh) * 100);
   width: 100%;
   position: relative;
@@ -545,9 +545,9 @@ onBeforeUnmount(() => {
 .work__meta {
   position: absolute;
   color: #fff;
-  font-size: clamp(0.95rem, 1.8vw, 1rem);
+  font-size: var(--text-sm);
   font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--tracking-label);
   background: rgba(0, 0, 0, 0.6);
   padding: 0.45rem 0.7rem;
   border-radius: 0.2rem;
@@ -564,8 +564,8 @@ onBeforeUnmount(() => {
   max-width: min(36vw, 360px);
   display: flex;
   gap: 0.5rem;
-  line-height: 1.45;
-  font-size: clamp(0.85rem, 1.4vw, 1rem);
+  line-height: var(--lh-base);
+  font-size: var(--text-sm);
 }
 
 .work__meta-mark {
@@ -609,8 +609,8 @@ onBeforeUnmount(() => {
   background:
     linear-gradient(135deg, rgba(20, 20, 20, 0.85), rgba(10, 10, 10, 0.65));
   color: #fff;
-  font-size: 0.65rem;
-  letter-spacing: 0.18em;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;

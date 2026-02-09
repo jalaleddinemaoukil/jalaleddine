@@ -55,8 +55,34 @@
   attachRaf();
   syncScrollTrigger();
 
-  window.addEventListener("astro:page-load", syncScrollTrigger, { passive: true });
-  window.addEventListener("astro:after-swap", syncScrollTrigger, { passive: true });
+  const refreshAll = () => {
+    if (lenis?.resize) lenis.resize();
+    if (window.ScrollTrigger?.refresh) window.ScrollTrigger.refresh();
+  };
+
+  const unlockIfNavClosed = () => {
+    const navOpen = document.querySelector('[data-nav-state="open"]');
+    if (!navOpen) document.documentElement.style.overflow = "";
+  };
+
+  window.addEventListener("astro:page-load", () => {
+    syncScrollTrigger();
+    refreshAll();
+    unlockIfNavClosed();
+  }, { passive: true });
+  window.addEventListener("astro:after-swap", () => {
+    syncScrollTrigger();
+    refreshAll();
+    unlockIfNavClosed();
+  }, { passive: true });
+  window.addEventListener("astro:hydrate", refreshAll, { passive: true });
+  window.addEventListener("astro:visible", refreshAll, { passive: true });
+  window.addEventListener("load", refreshAll, { passive: true });
+  window.addEventListener("content:loaded", refreshAll, { passive: true });
+  window.addEventListener("preloaderComplete", () => {
+    refreshAll();
+    unlockIfNavClosed();
+  }, { passive: true });
 
   window.__lenis = lenis;
 </script>

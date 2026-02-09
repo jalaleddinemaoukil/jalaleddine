@@ -207,7 +207,7 @@ const buildFooterReveal = () => {
       id: "footer-reveal",
       trigger: footerRef.value,
       start: "top bottom",
-      end: "top top",
+      end: "bottom bottom",
       scrub: true,
       invalidateOnRefresh: true,
     },
@@ -273,7 +273,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   background: radial-gradient(120% 120% at 15% 10%, #68b4ff 0%, #3687ff 45%, #0b2c6b 100%);
   color: #ffffff;
-  overflow: hidden;
+  overflow: visible;
   z-index: 12;
   isolation: isolate;
 }

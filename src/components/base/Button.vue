@@ -161,7 +161,7 @@ export default {
   text-transform: uppercase;
   font-size: var(--btn-fs, 1em);
   font-weight: var(--btn-fw, inherit);
-  letter-spacing: var(--btn-ls, normal);
+  letter-spacing: 0.04em;
 
   color: var(--color-ink, #131313);
   cursor: pointer;
@@ -194,7 +194,7 @@ export default {
 
 .btn-animate-chars__text {
   white-space: nowrap;
-  line-height: 1.3;
+  line-height: 1.2;
   position: relative;
   z-index: 1;
 }

@@ -109,7 +109,7 @@ import profileImage from "../assets/images/profile.webp";
     background: linear-gradient(165deg, #000 0%, #0a0a0a 100%);
     z-index: 10002;
     overflow: hidden;
-    font-family: "Merriweather", serif;
+    font-family: var(--font-main);
     contain: layout paint style;
     transform: translateZ(0);
     opacity: 1;
@@ -241,6 +241,7 @@ import profileImage from "../assets/images/profile.webp";
     );
     will-change: transform, opacity;
     opacity: 0;
+    display: none;
   }
   .accent--top {
     top: 28%;
@@ -269,14 +270,14 @@ import profileImage from "../assets/images/profile.webp";
     color: rgba(255, 255, 255, 0.88);
     text-transform: uppercase;
     text-align: center;
-    letter-spacing: 0.08em;
-    line-height: 1.5;
+    letter-spacing: var(--tracking-label);
+    line-height: var(--lh-base);
     overflow: hidden;
     pointer-events: none;
   }
   .copy p {
     margin: 0;
-    font-size: clamp(0.7rem, 2vw, 0.88rem);
+    font-size: clamp(0.9rem, 1.6vw, 1.1rem);
     font-weight: 400;
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
   }
@@ -293,9 +294,9 @@ import profileImage from "../assets/images/profile.webp";
     text-transform: uppercase;
     font-weight: 600;
     font-size: clamp(1.85rem, 8.5vw, 7.5rem);
-    letter-spacing: clamp(-0.015em, 0.5vw, 0.025em);
+    letter-spacing: var(--tracking-display);
     padding: 0 clamp(0.75rem, 3vw, 2rem);
-    line-height: 1;
+    line-height: 1.02;
     white-space: nowrap;
     text-shadow:
       0 2px 18px rgba(0, 0, 0, 0.6),
@@ -497,6 +498,7 @@ import profileImage from "../assets/images/profile.webp";
         window.clearTimeout(timeoutId);
         const MIN_SHOW_MS = 900;
         setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("preloaderExit", { detail: { reason: "simple" } }));
           preloader.classList.add("is-exiting");
           setTimeout(() => finish("simple"), 380);
         }, MIN_SHOW_MS);
@@ -631,6 +633,9 @@ import profileImage from "../assets/images/profile.webp";
       tl.add(() => {
         if (el.sr) el.sr.textContent = "Almost ready...";
       }, ">-0.2");
+      tl.add(() => {
+        window.dispatchEvent(new CustomEvent("preloaderExit", { detail: { reason: "completed" } }));
+      }, ">");
       
       if (accents.length) {
         tl.to(

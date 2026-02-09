@@ -126,10 +126,10 @@ const panel1 = ref(null);
 const panel2 = ref(null);
 const panel3 = ref(null);
 
-const navState = ref("closed"); // 'open' | 'closed'
+const navState = ref("closed");
 const navHidden = ref(false);
 const linkRefs = ref([]);
-  const fadeRefs = ref([]);
+const fadeRefs = ref([]);
 
 let tl = null;
 let lastScrollY = 0;
@@ -293,23 +293,17 @@ onMounted(() => {
   const gsap = getGSAP();
   if (!gsap) return;
 
-  // initial hidden states (matches Osmo setup)
   gsap.set(navWrap.value, { display: "none" });
   gsap.set(menu.value, { xPercent: 120 });
   gsap.set(overlay.value, { autoAlpha: 0 });
   gsap.set([panel1.value, panel2.value, panel3.value], { xPercent: 101 });
   gsap.set(fadeRefs.value.filter(Boolean), { autoAlpha: 0, yPercent: 40 });
-  // no fade: leave fade targets visible by default (CSS handles appearance)
 
-  // create TL (NOT paused) — same as your old React version
   tl = gsap.timeline();
 
-  // toggles (button + overlay)
   root.value?.querySelectorAll?.("[data-sidenav-toggle]")?.forEach((el) => {
     el.addEventListener("click", toggleNav);
   });
-
-  // No JS hover handlers: rely on CSS for link hover effect (matches original TSX)
 
   document.addEventListener("keydown", onKeydown);
 
@@ -346,8 +340,6 @@ onBeforeUnmount(() => {
   root.value?.querySelectorAll?.("[data-sidenav-toggle]")?.forEach((el) => {
     el.removeEventListener("click", toggleNav);
   });
-
-  // No JS hover handlers to remove (CSS-only hover)
 
   tl?.kill();
   tl = null;
@@ -390,7 +382,6 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-
 .sidenav__button {
   background: transparent;
   border: none;
@@ -413,7 +404,8 @@ onBeforeUnmount(() => {
   font-size: clamp(0.9em, 2vw, 1em);
   line-height: 1.4;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-label, 0.08em);
+  font-weight: 400;
 }
 
 /* Brand */
@@ -421,8 +413,8 @@ onBeforeUnmount(() => {
   color: var(--color-white);
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
+  letter-spacing: var(--tracking-label, 0.08em);
+  font-weight: 400;
   font-size: clamp(0.9em, 2vw, 1em);
   opacity: 0.95;
   text-align: right;
@@ -431,7 +423,10 @@ onBeforeUnmount(() => {
 .sidenav__nav {
   z-index: 100;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
   height: calc(var(--vh, 1vh) * 100);
+  min-height: 100vh;
   display: none;
   position: fixed;
   inset: 0;
@@ -448,13 +443,24 @@ onBeforeUnmount(() => {
 
 /* Menu panel */
 .sidenav__menu {
-  width: min(35em, 100%);
+  width: clamp(18rem, 34vw, 30rem);
   height: 100%;
   margin-left: auto;
-  padding-top: clamp(6em, 8vh, 7em);
-  padding-bottom: clamp(1.5em, 4vh, 2em);
+  padding-top: clamp(4em, 6vh, 7em);
+  padding-bottom: calc(clamp(1.2em, 3vh, 2em) + env(safe-area-inset-bottom, 0px));
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidenav__menu::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 .sidenav__menu-bg {
   z-index: 0;
@@ -468,25 +474,42 @@ onBeforeUnmount(() => {
   border-radius: 0;
 }
 
-/* Black/white palette (matches your old) */
 .sidenav__menu-bg-panel.is--first { background: var(--color-surface); }
 .sidenav__menu-bg-panel.is--second { background: var(--color-muted); }
 .sidenav__menu-bg-panel.is--third { background: var(--color-white); }
 
 .sidenav__menu-inner {
   z-index: 1;
+  min-height: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 4rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(1.5rem, 3vh, 3rem);
   position: relative;
 }
 
-/* Hover effect styles (adapted from React example) */
-.sidenav__button-icon { transition: transform 0.4s cubic-bezier(0.65, 0.05, 0, 1); }
-.sidenav__button:hover .sidenav__button-icon { transform: rotate(90deg); }
-
+/* Links */
+.sidenav__menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sidenav__menu-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.sidenav__menu-list-item {
+  height: 5em;
+  overflow: hidden;
+}
 .sidenav__menu-link {
   color: #131313;
   width: 100%;
@@ -497,49 +520,38 @@ onBeforeUnmount(() => {
   gap: 0.75em;
   align-items: baseline;
   position: relative;
-  overflow: hidden; /* ensure bg is clipped to link */
+  overflow: hidden;
 }
 .sidenav__menu-link-heading {
   margin: 0;
   color: #131313;
-  font-size: 4.5em;
+  font-size: 3.3em;
   font-weight: 600;
-  line-height: 0.75;
-  letter-spacing: -0.015em;
+  line-height: 0.85;
+  letter-spacing: var(--tracking-display, -0.015em);
   text-transform: uppercase;
-  font-family: "Merriweather", serif;
+  font-family: var(--font-main);
   position: relative;
-  z-index: 2; /* above background */
-  transform: translateY(0);
-  transition: transform 0.45s cubic-bezier(0.65, 0.05, 0, 1);
+  z-index: 2;
+  text-shadow: 0px 1em 0px rgb(255, 255, 255);
+  transition: transform 0.55s cubic-bezier(0.65, 0.05, 0, 1);
+  transition-delay: 0s;
 }
 .sidenav__menu-link-eyebrow {
   margin: 0;
   font-size: 0.875em;
   text-transform: uppercase;
+  letter-spacing: var(--tracking-label, 0.08em);
   opacity: 0.9;
   color: #131313;
   position: relative;
-  z-index: 2; /* above background */
-}
-.sidenav__menu-link-eyebrow {
+  z-index: 2;
   display: inline-block;
   padding: 0.08em 0.5em;
   border-radius: 0.35em;
   background: transparent;
   color: inherit;
   transition: background-color 220ms ease, color 220ms ease, transform 200ms ease;
-}
-.sidenav__menu-link:hover .sidenav__menu-link-eyebrow {
-  background: #000;
-  color: #fff;
-  transform: translateY(-0.08em);
-}
-.sidenav__menu-link-heading {
-  text-shadow: 0px 1em 0px rgb(255, 255, 255);
-  transition: transform 0.55s cubic-bezier(0.65, 0.05, 0, 1);
-  transition-delay: 0s;
-  
 }
 
 .sidenav__menu-link-bg {
@@ -562,79 +574,6 @@ onBeforeUnmount(() => {
   transform: scale3d(1, 1, 1);
 }
 
-.text-link { position: relative; }
-.text-link::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 1px;
-  background: var(--color-ink);
-  transform-origin: right center;
-  transform: scale(0, 1);
-  transition: transform 0.4s cubic-bezier(0.65, 0.05, 0, 1);
-}
-.text-link:hover::after {
-  transform-origin: left center;
-  transform: scale(1, 1);
-}
-
-/* Links */
-.sidenav__menu-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-.sidenav__menu-list-item {
-  height: 5em;
-  overflow: hidden;
-}
-.sidenav__menu-link {
-  color: #131313;
-  width: 100%;
-  padding: clamp(0.5em, 2vh, 0.75em) 0;
-  padding-left: clamp(1.25em, 4vw, 1.75em);
-  text-decoration: none;
-  display: flex;
-  gap: 0.75em;
-  align-items: baseline;
-  position: relative;
-  overflow: hidden;
-}
-.sidenav__menu-link-heading {
-  margin: 0;
-  color: #131313;
-  font-size: 4.5em;
-  font-weight: 600;
-  line-height: 0.75;
-  letter-spacing: -0.015em;
-  text-transform: uppercase;
-  font-family: "Merriweather", serif;
-  position: relative;
-  z-index: 1;
-}
-.sidenav__menu-link-eyebrow {
-  margin: 0;
-  font-size: 0.875em;
-  text-transform: uppercase;
-  opacity: 0.9;
-  color: #131313;
-  position: relative;
-  z-index: 1;
-}
-
-.sidenav__menu-link-eyebrow {
-  display: inline-block;
-  padding: 0.08em 0.5em;
-  border-radius: 0.35em;
-  background: transparent;
-  color: inherit;
-  transition: background-color 220ms ease, color 220ms ease, transform 200ms ease;
-}
-
 .sidenav__menu-link:hover .sidenav__menu-link-eyebrow {
   background: #000;
   color: #fff;
@@ -646,6 +585,8 @@ onBeforeUnmount(() => {
   padding-left: clamp(1.25em, 4vw, 1.75em);
   display: flex;
   flex-direction: column;
+  margin-top: auto;
+  padding-top: clamp(1.5rem, 3vh, 2rem);
   gap: 1.25em;
   color: #131313;
 }
@@ -685,11 +626,33 @@ onBeforeUnmount(() => {
 
 /* Mobile */
 @media (max-width: 767px) {
-  .sidenav__menu { width: 100% !important; }
-  .sidenav__menu-bg-panel { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-  .sidenav__menu-list-item { height: 4.5em; }
-  .sidenav__menu-link-heading { font-size: 4em; }
-  .sidenav__menu-socials { gap: 1em; }
+  .sidenav__menu { 
+    width: 100%;
+  }
+  .sidenav__menu-bg-panel { 
+    border-top-left-radius: 0; 
+    border-bottom-left-radius: 0; 
+  }
+  .sidenav__menu-list-item { 
+    height: 4.5em; 
+  }
+  .sidenav__menu-link-heading { 
+    font-size: clamp(2.6rem, 12vw, 3.6rem); 
+  }
+  .sidenav__menu-socials { 
+    gap: 1em; 
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .sidenav__menu-link-heading {
+    font-size: clamp(2.2rem, 11vw, 3rem);
+  }
+  
+  .sidenav__menu-list-item {
+    height: 4em;
+  }
 }
 
 /* A11y */
@@ -703,5 +666,14 @@ onBeforeUnmount(() => {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .sidenav__menu-link-bg,
+  .sidenav__menu-link-heading,
+  .sidenav__menu-link-eyebrow {
+    transition: none !important;
+  }
 }
 </style>

@@ -33,6 +33,8 @@ const MAX_RETRIES = 40;
 let preloaderObserver = null;
 let preloaderTimeout = null;
 let preloaderHandler = null;
+let pendingPlay = false;
+let buildInProgress = false;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -82,9 +84,14 @@ const cleanup = () => {
   preloaderTimeout = null;
 };
 
-const build = async () => {
+const build = async (options = {}) => {
+  const { paused = false } = options;
+  buildInProgress = true;
   const pack = await waitForGsap();
-  if (!pack?.gsap || !el.value) return;
+  if (!pack?.gsap || !el.value) {
+    buildInProgress = false;
+    return;
+  }
   const { gsap: g, SplitText, ScrollTrigger } = pack;
 
   cleanup();
@@ -95,6 +102,7 @@ const build = async () => {
       retryCount += 1;
       retryTimer = setTimeout(() => void build(), 300);
     }
+    buildInProgress = false;
     return;
   }
 
@@ -121,6 +129,7 @@ const build = async () => {
     stagger: config.stagger,
     ease: props.ease,
     immediateRender: false,
+    paused,
     ...(props.scroll
       ? {
           scrollTrigger: {
@@ -130,6 +139,18 @@ const build = async () => {
           },
         }
       : {}),
+  });
+
+  if (paused) tween.pause(0);
+  buildInProgress = false;
+  if (pendingPlay && tween && !props.scroll) {
+    pendingPlay = false;
+    tween.play(0);
+  }
+
+  // Content size can change after SplitText; force scroll refresh.
+  requestAnimationFrame(() => {
+    window.dispatchEvent(new Event("content:loaded"));
   });
 };
 
@@ -154,6 +175,20 @@ const isPreloaderGone = () => {
     cs.visibility === "hidden" ||
     Number(cs.opacity) === 0
   );
+};
+
+const playReveal = () => {
+  if (props.scroll) {
+    void build();
+    return;
+  }
+  if (tween) {
+    pendingPlay = false;
+    tween.play(0);
+    return;
+  }
+  pendingPlay = true;
+  if (!buildInProgress) void build();
 };
 
 const waitForPreloaderExit = () => {
@@ -188,16 +223,24 @@ const waitForPreloaderExit = () => {
 onMounted(() => {
   retryCount = 0;
   preloaderHandler = () => {
-    void build();
+    playReveal();
+    window.removeEventListener("preloaderExit", preloaderHandler);
+    window.removeEventListener("preloaderComplete", preloaderHandler);
   };
 
   if (props.waitForPreloader) {
+    const syncToPreloader = !props.scroll;
+    window.addEventListener("preloaderExit", preloaderHandler, { once: true });
     window.addEventListener("preloaderComplete", preloaderHandler, { once: true });
     if (!isPreloaderGone()) {
-      const hooked = waitForPreloaderExit();
-      if (!hooked) void build();
+      if (syncToPreloader) {
+        void build({ paused: true });
+      } else {
+        const hooked = waitForPreloaderExit();
+        if (!hooked) void build();
+      }
       // Fallback: ensure we don't miss the animation even if preloader is removed silently
-      preloaderTimeout = setTimeout(() => void build(), 1800);
+      preloaderTimeout = setTimeout(() => playReveal(), 1800);
     } else {
       void build();
     }
@@ -205,13 +248,18 @@ onMounted(() => {
     void build();
   }
   window.addEventListener("resize", onResize, { passive: true });
-  window.addEventListener("load", build, { once: true });
+  if (!props.waitForPreloader || props.scroll) {
+    window.addEventListener("load", build, { once: true });
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
   window.removeEventListener("load", build);
-  if (preloaderHandler) window.removeEventListener("preloaderComplete", preloaderHandler);
+  if (preloaderHandler) {
+    window.removeEventListener("preloaderExit", preloaderHandler);
+    window.removeEventListener("preloaderComplete", preloaderHandler);
+  }
   clearTimeout(resizeTimer);
   cleanup();
 });
