@@ -93,6 +93,8 @@ const footerRef = ref(null);
 let tween = null;
 let resizeHandler = null;
 let footerObserver = null;
+let loadHandler = null;
+let contentHandler = null;
 const useShader = ref(true);
 const mailtoEncoded =
   "&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#97;&#108;&#97;&#108;&#101;&#100;&#100;&#105;&#110;&#101;&#109;&#97;&#111;&#117;&#107;&#105;&#108;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;";
@@ -212,13 +214,22 @@ const buildFooterReveal = () => {
   });
 };
 
+const refreshFooter = () => {
+  buildFooterReveal();
+  ensurePlugins()?.ScrollTrigger?.refresh?.();
+  window.__lenis?.resize?.();
+};
+
 onMounted(() => {
   buildFooterReveal();
   resizeHandler = () => {
-    buildFooterReveal();
-    ensurePlugins()?.ScrollTrigger?.refresh?.();
+    refreshFooter();
   };
   window.addEventListener("resize", resizeHandler, { passive: true });
+  loadHandler = () => refreshFooter();
+  contentHandler = () => refreshFooter();
+  window.addEventListener("load", loadHandler, { once: true, passive: true });
+  window.addEventListener("content:loaded", contentHandler, { passive: true });
 
   useShader.value = !shouldDisableShader();
   if (useShader.value && footerRef.value) {
@@ -240,6 +251,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+  if (loadHandler) window.removeEventListener("load", loadHandler);
+  if (contentHandler) window.removeEventListener("content:loaded", contentHandler);
   footerObserver?.disconnect();
   tween?.scrollTrigger?.kill?.();
   tween?.kill?.();

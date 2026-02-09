@@ -18,13 +18,15 @@
           <img
             :ref="(el) => setBgRef(el, idx)"
             class="work__bg-img"
-            :src="item.bg"
+            :src="bgReady[idx] ? getBgSrc(item, 1600) : undefined"
+            :srcset="bgReady[idx] ? getBgSrcset(item) : undefined"
+            sizes="100vw"
             :alt="item.title"
             :data-loaded="bgLoaded[idx] || false"
             width="1920"
             height="1080"
-            :loading="idx === 0 ? 'eager' : 'lazy'"
-            :fetchpriority="idx === 0 ? 'high' : 'low'"
+            loading="lazy"
+            fetchpriority="low"
             decoding="async"
           />
         </div>
@@ -123,11 +125,38 @@ const images = ref([]);
 const medias = ref([]);
 const bgImages = ref([]);
 const bgLoaded = ref([]);
+const bgReady = ref([]);
 const videoReady = ref([]);
 let resizeTimer = null;
 let resizeHandler = null;
 let scrollHandler = null;
 let videoObserver = null;
+
+const isSanityImage = (url) => typeof url === "string" && url.includes("cdn.sanity.io/images/");
+
+const optimizeSanityImage = (url, width, quality = 70) => {
+  if (!isSanityImage(url)) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.set("w", String(width));
+    u.searchParams.set("auto", "format");
+    u.searchParams.set("fit", "max");
+    u.searchParams.set("q", String(quality));
+    return u.toString();
+  } catch {
+    return url;
+  }
+};
+
+const getBgSrc = (item, width) => optimizeSanityImage(item?.bg, width);
+
+const getBgSrcset = (item) => {
+  const url = item?.bg;
+  if (!isSanityImage(url)) return undefined;
+  return [800, 1200, 1600, 2000]
+    .map((w) => `${optimizeSanityImage(url, w)} ${w}w`)
+    .join(", ");
+};
 
 const setPanelRef = (el, idx) => {
   if (!el) return;
@@ -150,22 +179,24 @@ const setBgRef = (el, idx) => {
 
   // Mark as loaded when image loads
   if (el && !bgLoaded.value[idx]) {
-    el.addEventListener("load", () => {
+    el.addEventListener(
+      "load",
+      () => {
       bgLoaded.value[idx] = true;
-    }, { once: true });
+      scheduleScrollRefresh();
+    },
+      { once: true }
+    );
   }
 };
 
-// Preload only the first background to avoid pulling every asset on first load.
-const preloadFirstBackground = () => {
+const scheduleScrollRefresh = () => {
   if (typeof window === "undefined") return;
-  const first = items.value[0];
-  if (!first?.bg) return;
-  const img = new Image();
-  img.src = first.bg;
-  img.onload = () => {
-    bgLoaded.value[0] = true;
-  };
+  requestAnimationFrame(() => {
+    ensurePlugins()?.ScrollTrigger?.refresh?.();
+    window.__lenis?.resize?.();
+    window.dispatchEvent(new Event("content:loaded"));
+  });
 };
 
 const prefersReducedMotion = () =>
@@ -368,8 +399,6 @@ const onCursorFocus = (event) => {
 };
 
 onMounted(() => {
-  preloadFirstBackground();
-
   if (typeof window !== "undefined" && "IntersectionObserver" in window) {
     videoObserver = new IntersectionObserver(
       (entries) => {
@@ -378,21 +407,25 @@ onMounted(() => {
           if (idx < 0) return;
           const video = images.value[idx];
           if (entry.isIntersecting) {
+            bgReady.value[idx] = true;
             videoReady.value[idx] = true;
             video?.play?.().catch(() => {});
+            scheduleScrollRefresh();
           } else {
             video?.pause?.();
           }
         });
       },
-      { rootMargin: "200px 0px", threshold: 0.2 }
+      { rootMargin: "600px 0px", threshold: 0.2 }
     );
 
     panels.value.forEach((panel) => {
       if (panel) videoObserver.observe(panel);
     });
   } else {
+    bgReady.value = items.value.map(() => true);
     videoReady.value = items.value.map(() => true);
+    scheduleScrollRefresh();
   }
 
   // Delay parallax init to ensure DOM is ready

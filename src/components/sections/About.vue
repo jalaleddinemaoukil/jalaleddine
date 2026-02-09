@@ -10,12 +10,12 @@
               <video
                 ref="imageEl"
                 class="about__image"
-                :src="profileImg"
+                :src="videoReady ? profileImg : undefined"
                 muted
                 loop
-                autoplay
+                :autoplay="videoReady"
                 playsinline
-                preload="metadata"
+                :preload="videoReady ? 'metadata' : 'none'"
                 aria-hidden="true"
                 role="presentation"
                 tabindex="-1"
@@ -100,9 +100,11 @@ const imageFrame = ref(null);
 const imageReveal = ref(null);
 const imageEl = ref(null);
 const ctaRef = ref(null);
+const videoReady = ref(false);
 
 let ctx = null;
 let resizeTimer = null;
+let videoObserver = null;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -118,6 +120,15 @@ const showAll = () => {
   if (!pack) return;
   const { gsap } = pack;
   gsap.set([imageFrame.value, imageReveal.value, imageEl.value], { clearProps: "all" });
+};
+
+const scheduleScrollRefresh = () => {
+  if (typeof window === "undefined") return;
+  requestAnimationFrame(() => {
+    ensurePlugins()?.ScrollTrigger?.refresh?.();
+    window.__lenis?.resize?.();
+    window.dispatchEvent(new Event("content:loaded"));
+  });
 };
 
 const waitForGsap = async (timeoutMs = 2000) => {
@@ -233,6 +244,33 @@ const onResize = () => {
 };
 
 onMounted(() => {
+  if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+    videoObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          videoReady.value = true;
+          imageEl.value?.play?.().catch(() => {});
+          scheduleScrollRefresh();
+          videoObserver?.disconnect();
+          videoObserver = null;
+        }
+      },
+      { rootMargin: "500px 0px", threshold: 0.1 }
+    );
+
+    if (aboutRef.value) videoObserver.observe(aboutRef.value);
+  } else {
+    videoReady.value = true;
+  }
+
+  imageEl.value?.addEventListener?.(
+    "loadeddata",
+    () => {
+      scheduleScrollRefresh();
+    },
+    { once: true }
+  );
+
   void buildAnimation();
   window.addEventListener("resize", onResize, { passive: true });
 });
@@ -240,6 +278,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
   clearTimeout(resizeTimer);
+
+  videoObserver?.disconnect();
+  videoObserver = null;
 
   ctx?.revert();
   ctx = null;
