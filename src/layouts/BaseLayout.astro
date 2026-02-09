@@ -1,12 +1,11 @@
 ---
 import "../styles/global.css";
 import Preloader from "../components/Preloader.astro";
+import LenisInit from "../components/base/LenisInit.astro";
 // @ts-expect-error - Vue SFC with script setup is valid in Astro
 import SideNav from "../components/base/SideNav.vue";
 import iconUrl from "../assets/images/icon.svg";
 import profileImage from "../assets/images/profile.webp";
-import lenisScript from "../scripts/lenis.js?url";
-import mailtoScript from "../scripts/mailto.js?url";
 
 const iconUrlSrc = typeof iconUrl === "string" ? iconUrl : iconUrl.src;
 const profileImageSrc = typeof profileImage === "string" ? profileImage : profileImage.src;
@@ -75,7 +74,6 @@ const profileImageSrc = typeof profileImage === "string" ? profileImage : profil
     <Preloader />
     <SideNav client:load />
     <slot />
-    <script type="module" src={lenisScript} defer></script>
-    <script type="module" src={mailtoScript} defer></script>
+    <LenisInit />
   </body>
 </html>

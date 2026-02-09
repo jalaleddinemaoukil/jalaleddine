@@ -1,7 +1,7 @@
 <template>
   <component
     :is="tag"
-    :href="href"
+    :href="resolvedHref"
     :to="to"
     :type="type"
     :disabled="disabled"
@@ -53,9 +53,12 @@ export default {
     lift: { type: [String, Number], default: "1.3em" } // match your original
   },
   data() {
-    return { observer: null };
+    return { observer: null, resolvedHref: this.href };
   },
   computed: {
+    hasMailto() {
+      return Boolean(this.$attrs?.["data-mailto"]);
+    },
     resolvedAriaLabel() {
       if (this.ariaLabel) return this.ariaLabel;
       if (this.label) return this.label;
@@ -82,6 +85,7 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
+      this.applyMailtoHref();
       this.initButtonCharacterStagger();
       this.setupMutationObserver();
     });
@@ -90,11 +94,26 @@ export default {
     this.observer?.disconnect();
   },
   watch: {
+    href(next) {
+      if (!this.hasMailto) this.resolvedHref = next;
+    },
     label() {
       this.$nextTick(() => this.initButtonCharacterStagger());
     }
   },
   methods: {
+    decodeMailto(encoded = "") {
+      return encoded.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+    },
+    applyMailtoHref() {
+      if (this.tag !== "a") return;
+      if (!this.hasMailto) return;
+      const encoded = this.$attrs?.["data-mailto"];
+      if (!encoded) return;
+      const decoded = this.decodeMailto(String(encoded));
+      if (!decoded) return;
+      this.resolvedHref = decoded;
+    },
     initButtonCharacterStagger() {
       const el = this.$refs.textElement;
       if (!el) return;

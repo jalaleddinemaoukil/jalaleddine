@@ -11,6 +11,7 @@
         v-for="(item, idx) in items"
         :key="item._id || item.src || item.title"
         class="work__panel"
+        :data-index="idx"
         :ref="(el) => setPanelRef(el, idx)"
       >
         <div class="work__bg">
@@ -22,8 +23,8 @@
             :data-loaded="bgLoaded[idx] || false"
             width="1920"
             height="1080"
-            loading="lazy"
-            fetchpriority="low"
+            :loading="idx === 0 ? 'eager' : 'lazy'"
+            :fetchpriority="idx === 0 ? 'high' : 'low'"
             decoding="async"
           />
         </div>
@@ -47,14 +48,13 @@
             <video
               :ref="(el) => setImageRef(el, idx)"
               class="work__video"
-              :src="item.src"
+              :src="videoReady[idx] ? item.src : undefined"
               :aria-label="item.alt || item.title"
-              autoplay
+              :autoplay="videoReady[idx]"
               loop
               muted
               playsinline
-              preload="metadata"
-              loading="lazy"
+              :preload="videoReady[idx] ? 'metadata' : 'none'"
               aria-hidden="true"
               role="presentation"
               tabindex="-1"
@@ -123,9 +123,11 @@ const images = ref([]);
 const medias = ref([]);
 const bgImages = ref([]);
 const bgLoaded = ref([]);
+const videoReady = ref([]);
 let resizeTimer = null;
 let resizeHandler = null;
 let scrollHandler = null;
+let videoObserver = null;
 
 const setPanelRef = (el, idx) => {
   if (!el) return;
@@ -154,16 +156,16 @@ const setBgRef = (el, idx) => {
   }
 };
 
-// Preload background images
-const preloadBackgrounds = () => {
+// Preload only the first background to avoid pulling every asset on first load.
+const preloadFirstBackground = () => {
   if (typeof window === "undefined") return;
-  items.value.forEach((item, idx) => {
-    const img = new Image();
-    img.src = item.bg;
-    img.onload = () => {
-      bgLoaded.value[idx] = true;
-    };
-  });
+  const first = items.value[0];
+  if (!first?.bg) return;
+  const img = new Image();
+  img.src = first.bg;
+  img.onload = () => {
+    bgLoaded.value[0] = true;
+  };
 };
 
 const prefersReducedMotion = () =>
@@ -366,7 +368,32 @@ const onCursorFocus = (event) => {
 };
 
 onMounted(() => {
-  preloadBackgrounds();
+  preloadFirstBackground();
+
+  if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+    videoObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const idx = Number(entry.target?.dataset?.index ?? -1);
+          if (idx < 0) return;
+          const video = images.value[idx];
+          if (entry.isIntersecting) {
+            videoReady.value[idx] = true;
+            video?.play?.().catch(() => {});
+          } else {
+            video?.pause?.();
+          }
+        });
+      },
+      { rootMargin: "200px 0px", threshold: 0.2 }
+    );
+
+    panels.value.forEach((panel) => {
+      if (panel) videoObserver.observe(panel);
+    });
+  } else {
+    videoReady.value = items.value.map(() => true);
+  }
 
   // Delay parallax init to ensure DOM is ready
   requestAnimationFrame(() => {
@@ -394,6 +421,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (resizeHandler) window.removeEventListener("resize", resizeHandler);
   if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
+  videoObserver?.disconnect();
+  videoObserver = null;
   clearTimeout(resizeTimer);
   const st = ensurePlugins()?.ScrollTrigger;
   st?.getAll?.().forEach((t) => {

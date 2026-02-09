@@ -100,7 +100,7 @@ const props = defineProps({
     default: () => ([
       { label: "Home", href: "/", eyebrow: "01" },
       { label: "Works", href: "/works", eyebrow: "02" },
-      { label: "About", href: "/about", eyebrow: "03" },
+      { label: "Info", href: "/info", eyebrow: "03" },
       { label: "Blog", href: "/blog", eyebrow: "04" },
       { label: "Contact", href: "#contact", eyebrow: "05", isMail: true },
     ]),

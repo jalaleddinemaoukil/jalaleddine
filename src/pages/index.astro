@@ -34,9 +34,9 @@ try {
 <BaseLayout>
   <main>
     <Hero client:load />
-    <About client:load />
-    <Work client:load items={workItems} />
-    <Services client:load />
-    <Footer client:load />
+    <About client:visible />
+    <Work client:visible items={workItems} />
+    <Services client:visible />
+    <Footer client:visible />
   </main>
 </BaseLayout>

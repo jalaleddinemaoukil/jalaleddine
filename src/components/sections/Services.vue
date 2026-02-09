@@ -1,72 +1,34 @@
 <template>
   <section id="services" class="services section">
+
     <div class="shell">
-      <div class="services__intro">
-        <h2
-          class="services__heading"
-          data-split="heading"
-          data-split-reveal="lines"
-          aria-label="Senior-level execution that converts global decision-makers."
-        >
-What I do  </h2>
-        <p
-          class="services__subhead"
-          data-split="heading"
-          data-split-reveal="lines"
-        >
-          Strategy, design, and engineering in one loop. Cohesive products,
-          clean systems, and outcomes you can measure.
-        </p>
-     
-      </div>
+      <RevealText tag="h2" :scroll="true" class="work__heading">
+        What I Bring to the Table
+      </RevealText>
     </div>
 
+
     <div class="services__list">
-      <article
-        v-for="(service, idx) in services"
-        :key="service.id"
-        class="service"
-        :style="{
-          '--stack-index': idx,
-          '--stack-total': services.length,
-        }"
-        :ref="(el) => setCardRef(el, idx)"
-      >
+      <article v-for="(service, idx) in services" :key="service.id" class="service" :style="{
+        '--stack-index': idx,
+        '--stack-total': services.length,
+      }" :ref="(el) => setCardRef(el, idx)">
         <div class="shell service__inner">
           <div class="service__content" :ref="(el) => setContentRef(el, idx)">
-            <p
-              class="service__eyebrow"
-              data-split="heading"
-              data-split-reveal="words"
-            >
+            <p class="service__eyebrow" data-split="heading" data-split-reveal="words">
               {{ service.subtitle }}
             </p>
-            <h3
-              class="service__title"
-              data-split="heading"
-              data-split-reveal="lines"
-              :aria-label="service.title"
-            >
+            <h3 class="service__title" data-split="heading" data-split-reveal="lines" :aria-label="service.title">
               {{ service.title }}
             </h3>
-            <p
-              class="service__desc"
-              data-split="heading"
-              data-split-reveal="lines"
-            >
+            <p class="service__desc" data-split="heading" data-split-reveal="lines">
               {{ service.description }}
             </p>
           </div>
 
           <div class="service__media" :ref="(el) => setMediaWrapRef(el, idx)">
-            <img
-              :ref="(el) => setMediaImageRef(el, idx)"
-              class="service__image"
-              :src="service.imageSrc"
-              :alt="service.imageAlt"
-              loading="lazy"
-              decoding="async"
-            />
+            <img :ref="(el) => setMediaImageRef(el, idx)" class="service__image" :src="service.imageSrc"
+              :alt="service.imageAlt" loading="lazy" decoding="async" />
             <div class="service__media-shade" aria-hidden="true"></div>
           </div>
         </div>
@@ -77,6 +39,7 @@ What I do  </h2>
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
+import RevealText from "../base/RevealText.vue";
 const webImage = "/images/web.webp";
 const cloudImage = "/images/cloud.webp";
 const performanceImage = "/images/optimization.webp";
@@ -427,6 +390,16 @@ onBeforeUnmount(() => {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+
+.work__heading {
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  line-height: 1;
+  margin: 0 0 clamp(2rem, 5vw, 4rem);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+
 .service {
   position: relative;
   padding-block: clamp(2.5rem, 6vw, 5rem);
@@ -499,6 +472,7 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 991px) {
+
   .service__content,
   .service__media {
     grid-column: 1 / -1;
