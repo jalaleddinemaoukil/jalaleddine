@@ -261,7 +261,7 @@ onBeforeUnmount(() => {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -0.1em;
+  bottom: -0.03em;
   height: 1px;
   background: currentColor;
   transform-origin: right center;

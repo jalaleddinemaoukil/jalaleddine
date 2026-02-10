@@ -134,9 +134,22 @@ const fadeRefs = ref([]);
 let tl = null;
 let lastScrollY = 0;
 let scrollRaf = null;
+let resizeRaf = null;
 
 const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+// Fix mobile viewport height for dynamic browser UI
+const setViewportHeight = () => {
+  if (resizeRaf) return;
+  resizeRaf = requestAnimationFrame(() => {
+    // Use visualViewport if available (better for mobile)
+    const height = window.visualViewport?.height || window.innerHeight;
+    const vh = height * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    resizeRaf = null;
+  });
+};
 
 
 const getGSAP = () => {
@@ -255,8 +268,8 @@ const handleLinkClick = (event, item) => {
   // internal route
   if (href.startsWith("/")) {
     setTimeout(() => {
-      const handled = window.__pageWipeNavigate?.(href);
-      if (!handled) window.location.href = href;
+      window.history.pushState({}, "", href);
+      window.dispatchEvent(new PopStateEvent("popstate"));
     }, 250);
     return;
   }
@@ -267,38 +280,34 @@ const handleLinkClick = (event, item) => {
 };
 
 const handleBrandClick = (event) => {
-  event?.preventDefault?.();
   const href = props.brandHref || "/#hero";
   const isHome = window.location.pathname === "/" || window.location.pathname === "";
 
-  if (navState.value === "open") closeNav();
-
   if (isHome && href.includes("#")) {
+    event?.preventDefault?.();
     const hash = href.split("#")[1];
     const target = hash ? `#${hash}` : "#hero";
     const el = document.querySelector(target);
-    requestAnimationFrame(() => {
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-        window.history.replaceState({}, "", target);
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        window.history.replaceState({}, "", "#hero");
-      }
-    });
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+      window.history.replaceState({}, "", target);
+    }
     return;
   }
 
   // Not on home: redirect to home hero
   if (!isHome) {
-    const next = href.startsWith("/") ? href : `/${href.replace(/^#/, "#")}`;
-    window.location.href = next;
+    event?.preventDefault?.();
+    window.location.href = href.startsWith("/") ? href : `/${href.replace(/^#/, "#")}`;
   }
 };
 
 onMounted(() => {
   const gsap = getGSAP();
   if (!gsap) return;
+
+  // Set initial viewport height for mobile browsers
+  setViewportHeight();
 
   gsap.set(navWrap.value, { display: "none" });
   gsap.set(menu.value, { xPercent: 120 });
@@ -313,6 +322,15 @@ onMounted(() => {
   });
 
   document.addEventListener("keydown", onKeydown);
+
+  // Update viewport height on resize and orientation change
+  window.addEventListener("resize", setViewportHeight, { passive: true });
+  window.addEventListener("orientationchange", setViewportHeight, { passive: true });
+  
+  // Better mobile support with visualViewport API
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", setViewportHeight, { passive: true });
+  }
 
   lastScrollY = window.scrollY || 0;
   const onScroll = () => {
@@ -348,6 +366,14 @@ onBeforeUnmount(() => {
     el.removeEventListener("click", toggleNav);
   });
 
+  // Remove viewport height listeners
+  window.removeEventListener("resize", setViewportHeight);
+  window.removeEventListener("orientationchange", setViewportHeight);
+  
+  if (window.visualViewport) {
+    window.visualViewport.removeEventListener("resize", setViewportHeight);
+  }
+
   tl?.kill();
   tl = null;
   lockScroll(false);
@@ -357,7 +383,9 @@ onBeforeUnmount(() => {
     delete root.value._onScroll;
   }
   if (scrollRaf) cancelAnimationFrame(scrollRaf);
+  if (resizeRaf) cancelAnimationFrame(resizeRaf);
   scrollRaf = null;
+  resizeRaf = null;
 });
 </script>
 
@@ -430,13 +458,16 @@ onBeforeUnmount(() => {
 .sidenav__nav {
   z-index: 100;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  height: calc(var(--vh, 1vh) * 100);
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100); /* Dynamic height for mobile */
   min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
   display: none;
   position: fixed;
   inset: 0;
+  /* Prevent mobile address bar from affecting layout */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .sidenav__overlay {
   z-index: 0;
@@ -463,6 +494,19 @@ onBeforeUnmount(() => {
   touch-action: pan-y;
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* iOS Safari viewport fix */
+@supports (-webkit-touch-callout: none) {
+  .sidenav__nav {
+    height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
+  }
+  
+  .sidenav__menu {
+    height: 100%;
+    max-height: -webkit-fill-available;
+  }
 }
 
 .sidenav__menu::-webkit-scrollbar {
@@ -521,7 +565,7 @@ onBeforeUnmount(() => {
   color: #131313;
   width: 100%;
   padding: clamp(0.5em, 2vh, 0.75em) 0;
-  padding-left: clamp(1em, 4vw, 1.75em);
+  padding-left: clamp(1.25em, 4vw, 1.75em);
   text-decoration: none;
   display: flex;
   gap: 0.75em;
@@ -532,9 +576,9 @@ onBeforeUnmount(() => {
 .sidenav__menu-link-heading {
   margin: 0;
   color: #131313;
-  font-size: clamp(2.9rem, 12vw, 3.3rem);
-  font-weight: 600;
-  line-height: 0.85;
+  font-size: 3.8em;
+  font-weight: 400;
+  line-height: 0.75;
   letter-spacing: var(--tracking-display, -0.015em);
   text-transform: uppercase;
   font-family: var(--font-main);
@@ -635,6 +679,8 @@ onBeforeUnmount(() => {
 @media (max-width: 767px) {
   .sidenav__menu { 
     width: 100%;
+    /* Ensure full viewport usage on mobile */
+    padding-top: max(env(safe-area-inset-top), clamp(4em, 6vh, 7em));
   }
   .sidenav__menu-bg-panel { 
     border-top-left-radius: 0; 
