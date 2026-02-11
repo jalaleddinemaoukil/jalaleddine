@@ -36,6 +36,12 @@ let preloaderHandler = null;
 let pendingPlay = false;
 let buildInProgress = false;
 
+const stripProhibitedAria = () => {
+  if (!el.value) return;
+  el.value.removeAttribute("aria-label");
+  el.value.removeAttribute("aria-labelledby");
+};
+
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ||
@@ -97,6 +103,7 @@ const build = async (options = {}) => {
   const { gsap: g, SplitText, ScrollTrigger } = pack;
 
   cleanup();
+  stripProhibitedAria();
 
   if (prefersReducedMotion()) {
     g.set(el.value, { clearProps: "all" });
@@ -162,6 +169,7 @@ const build = async (options = {}) => {
     wordsClass: "word",
     charsClass: "letter",
   });
+  stripProhibitedAria();
 
   const targets = splitInstance[type] && splitInstance[type].length ? splitInstance[type] : [el.value];
   const config = splitConfig[type];

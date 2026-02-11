@@ -10,6 +10,16 @@ import {
   prefetchWorksItems,
 } from "@/lib/sanity.js";
 
+const hydrateInitialState = () => {
+  if (typeof window === "undefined") return;
+  if (window.__INITIAL_STATE__) return;
+  const stateEl = document.getElementById("__INITIAL_STATE__");
+  if (!stateEl?.textContent) return;
+  window.__INITIAL_STATE__ = stateEl.textContent.trim();
+};
+
+hydrateInitialState();
+
 const scrollBehavior = (to, from, savedPosition) => {
   if (savedPosition) return savedPosition;
   if (to.hash) {

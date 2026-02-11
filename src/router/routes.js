@@ -1,9 +1,9 @@
 import Home from "@/views/Home.vue";
-import Works from "@/views/Works.vue";
-import Info from "@/views/Info.vue";
-import Blog from "@/views/Blog.vue";
-import NotFound from "@/views/NotFound.vue";
-import PrivacyPolicy from "@/views/PrivacyPolicy.vue";
+const Works = () => import("@/views/Works.vue");
+const Info = () => import("@/views/Info.vue");
+const Blog = () => import("@/views/Blog.vue");
+const NotFound = () => import("@/views/NotFound.vue");
+const PrivacyPolicy = () => import("@/views/PrivacyPolicy.vue");
 
 export const routes = [
   {

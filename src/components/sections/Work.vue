@@ -109,7 +109,7 @@ const PREWARM_COUNT = 1;
 
 const isSanityImage = (url) => typeof url === "string" && url.includes("cdn.sanity.io/images/");
 
-const optimizeSanityImage = (url, width, quality = 70) => {
+const optimizeSanityImage = (url, width, quality = 60) => {
   if (!isSanityImage(url)) return url;
   try {
     const u = new URL(url);

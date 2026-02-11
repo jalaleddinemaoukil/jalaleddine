@@ -18,7 +18,7 @@
             <p class="service__eyebrow" data-split="heading" data-split-reveal="words">
               {{ service.subtitle }}
             </p>
-            <h3 class="service__title" data-split="heading" data-split-reveal="lines" :aria-label="service.title">
+            <h3 class="service__title" data-split="heading" data-split-reveal="lines">
               {{ service.title }}
             </h3>
             <p class="service__desc" data-split="heading" data-split-reveal="lines">
@@ -519,5 +519,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-
 
