@@ -273,24 +273,14 @@ onMounted(() => {
       } catch {}
 
       gsap.set([el.nameText, el.copyText].filter(Boolean), { visibility: "visible" });
-      const headingWords = splitToMaskedWords(el.nameText);
-      const copyWords = splitToMaskedWords(el.copyText);
-
-      if (!headingWords.length && el.nameText) {
-        el.nameText.textContent = el.nameText.dataset.originalText || el.nameText.textContent;
-        el.nameText.style.visibility = "visible";
+      const shouldSplitText = false;
+      let headingWords = [];
+      let copyWords = [];
+      if (shouldSplitText) {
+        headingWords = splitToMaskedWords(el.nameText);
+        copyWords = splitToMaskedWords(el.copyText);
       }
-      if (!copyWords.length && el.copyText) {
-        el.copyText.textContent = el.copyText.dataset.originalText || el.copyText.textContent;
-        el.copyText.style.visibility = "visible";
-      }
-
-      if (!headingWords.length && !copyWords.length) {
-        showText();
-        window.clearTimeout(timeoutId);
-        finish("split-failed");
-        return;
-      }
+      showText();
 
       if (el.sr) el.sr.textContent = "Loading...";
 
@@ -310,8 +300,8 @@ onMounted(() => {
           transformOrigin: "50% 50%",
         });
       }
-      gsap.set(headingWords, { yPercent: 110 });
-      gsap.set(copyWords, { yPercent: 110 });
+      if (headingWords.length) gsap.set(headingWords, { yPercent: 110 });
+      if (copyWords.length) gsap.set(copyWords, { yPercent: 110 });
       if (el.bar) gsap.set(el.bar, { scaleX: 0, transformOrigin: "0 50%" });
       if (el.glow) gsap.set(el.glow, { opacity: 0, x: -30 });
 
@@ -362,8 +352,12 @@ onMounted(() => {
         );
       }
 
-      tl.to(headingWords, { yPercent: 0, duration: 0.6, stagger: 0.11 }, 0.2);
-      tl.to(copyWords, { yPercent: 0, duration: 0.6, stagger: 0.04 }, 0.4);
+      if (headingWords.length) {
+        tl.to(headingWords, { yPercent: 0, duration: 0.6, stagger: 0.11 }, 0.2);
+      }
+      if (copyWords.length) {
+        tl.to(copyWords, { yPercent: 0, duration: 0.6, stagger: 0.04 }, 0.4);
+      }
 
       if (el.bar) {
         tl.to(el.bar, { scaleX: 1, duration: prog, ease: "power1.out" }, 0.6);
@@ -396,28 +390,32 @@ onMounted(() => {
         );
       }
 
-      tl.to(
-        headingWords,
-        {
-          yPercent: -30,
-          opacity: 0,
-          duration: 0.4,
-          stagger: 0.06,
-          ease: "expo.out",
-        },
-        "+=0.3",
-      );
-      tl.to(
-        copyWords,
-        {
-          yPercent: -20,
-          opacity: 0,
-          duration: 0.35,
-          stagger: 0.02,
-          ease: "expo.out",
-        },
-        "<+0.05",
-      );
+      if (headingWords.length) {
+        tl.to(
+          headingWords,
+          {
+            yPercent: -30,
+            opacity: 0,
+            duration: 0.4,
+            stagger: 0.06,
+            ease: "expo.out",
+          },
+          "+=0.3",
+        );
+      }
+      if (copyWords.length) {
+        tl.to(
+          copyWords,
+          {
+            yPercent: -20,
+            opacity: 0,
+            duration: 0.35,
+            stagger: 0.02,
+            ease: "expo.out",
+          },
+          "<+0.05",
+        );
+      }
 
       if (el.stageBg) {
         tl.to(

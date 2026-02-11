@@ -1,0 +1,6 @@
+{
+  "seo-audit": "Review this page/component for SEO. Check meta tags, semantic HTML, schema markup, and keyword opportunities.",
+  "perf-check": "Analyze performance: Core Web Vitals, GSAP animations, asset optimization, and lazy loading opportunities.",
+  "conversion-review": "Does this convert? Analyze first impression, CTA clarity, content flow, and mobile experience.",
+  "pre-deploy": "Run pre-deploy checklist: Lighthouse scores, accessibility, meta tags, sitemap, and mobile validation."
+}

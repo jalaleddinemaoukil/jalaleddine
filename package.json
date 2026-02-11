@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-sitemap.mjs && vite-ssg build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "perf:audit": "npx @lhci/cli@0.13.0 autorun --config=./lighthouserc.json"
   },
   "dependencies": {
     "@unhead/vue": "^1.11.0",

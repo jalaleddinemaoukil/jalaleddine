@@ -99,6 +99,7 @@ const videoReady = ref(false);
 let ctx = null;
 let resizeTimer = null;
 let videoObserver = null;
+let hasRevealed = false;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -164,19 +165,34 @@ const buildAnimation = async () => {
     const root = aboutRef.value;
     if (!root) return;
     const ctaReveal = ctaRef.value?.querySelector(".reveal");
+    const setFinal = () => {
+      if (imageFrame.value) gsap.set(imageFrame.value, { opacity: 1, yPercent: 0 });
+      if (imageReveal.value) gsap.set(imageReveal.value, { clipPath: "inset(0 0 0% 0)" });
+      if (imageEl.value) gsap.set(imageEl.value, { scale: 1, yPercent: 0 });
+      if (ctaReveal) gsap.set(ctaReveal, { yPercent: 0 });
+    };
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: root,
-        scroller: window,
-        start: "top 70%",
-        end: "bottom 20%",
-        toggleActions: "play none none reverse",
-        invalidateOnRefresh: true,
-      },
-    });
+    if (hasRevealed) {
+      setFinal();
+    }
 
-    if (imageFrame.value && imageReveal.value && imageEl.value) {
+    const tl = hasRevealed
+      ? null
+      : gsap.timeline({
+          scrollTrigger: {
+            trigger: root,
+            scroller: window,
+            start: "top 70%",
+            end: "bottom 20%",
+            once: true,
+            invalidateOnRefresh: true,
+          },
+          onComplete: () => {
+            hasRevealed = true;
+          },
+        });
+
+    if (tl && imageFrame.value && imageReveal.value && imageEl.value) {
       tl.from(
         imageFrame.value,
         { opacity: 0, yPercent: 6, duration: 0.9, ease: "power3.out" },
@@ -195,7 +211,7 @@ const buildAnimation = async () => {
         );
     }
 
-    if (ctaReveal) {
+    if (tl && ctaReveal) {
       tl.from(
         ctaReveal,
         { yPercent: 120, duration: 0.75, ease: "power3.out" },
