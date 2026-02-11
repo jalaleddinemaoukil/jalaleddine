@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://example.com/</loc>
-    <lastmod>2026-02-11T18:02:35.643Z</lastmod>
+    <lastmod>2026-02-11T21:09:11.999Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://example.com/works</loc>
-    <lastmod>2026-02-11T18:02:35.643Z</lastmod>
+    <lastmod>2026-02-11T21:09:11.999Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
