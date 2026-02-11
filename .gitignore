@@ -2,6 +2,8 @@
 dist/
 # generated types
 .astro/
+.lighthouseci/
+tmp-preview.pid
 
 # dependencies
 node_modules/

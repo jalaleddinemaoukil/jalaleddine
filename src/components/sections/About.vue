@@ -262,7 +262,7 @@ onMounted(() => {
           videoObserver = null;
         }
       },
-      { rootMargin: "500px 0px", threshold: 0.1 }
+      { rootMargin: "280px 0px", threshold: 0.1 }
     );
 
     if (aboutRef.value) videoObserver.observe(aboutRef.value);

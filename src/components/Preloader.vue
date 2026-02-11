@@ -66,10 +66,10 @@ import { onMounted, onBeforeUnmount } from "vue";
 import profileImage from "../assets/images/profile.webp";
 
 const PRELOADER_CONFIG = {
-  ENTER_MS: 1100,
-  PROGRESS_MS: 1400,
-  EXIT_MS: 850,
-  MAX_TOTAL_MS: 7000,
+  ENTER_MS: 800,
+  PROGRESS_MS: 900,
+  EXIT_MS: 650,
+  MAX_TOTAL_MS: 4500,
   SESSION_KEY: "preloaderShown_v7",
   SKIP_ON_CLIENT_SWAPS: true,
 };
@@ -265,12 +265,7 @@ onMounted(() => {
         window[EASE_FLAG] = true;
       }
 
-      try {
-        await document.fonts?.ready;
-      } catch {}
-      try {
-        await el.img?.decode?.();
-      } catch {}
+      // Avoid delaying first paint on font/image readiness
 
       gsap.set([el.nameText, el.copyText].filter(Boolean), { visibility: "visible" });
       const shouldSplitText = false;

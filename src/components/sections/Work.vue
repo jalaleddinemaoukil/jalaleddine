@@ -431,24 +431,24 @@ const initObservers = () => {
     return;
   }
 
-  videoObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        const idx = Number(entry.target?.dataset?.index ?? -1);
-        if (idx < 0) return;
-        const video = images.value[idx];
-        if (entry.isIntersecting) {
-          bgReady.value[idx] = true;
-          videoReady.value[idx] = true;
-          video?.play?.().catch(() => {});
-          scheduleScrollRefresh();
-        } else {
-          video?.pause?.();
-        }
-      });
-    },
-    { rootMargin: "600px 0px", threshold: 0.2 }
-  );
+    videoObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const idx = Number(entry.target?.dataset?.index ?? -1);
+          if (idx < 0) return;
+          const video = images.value[idx];
+          if (entry.isIntersecting) {
+            bgReady.value[idx] = true;
+            videoReady.value[idx] = true;
+            video?.play?.().catch(() => {});
+            scheduleScrollRefresh();
+          } else {
+            video?.pause?.();
+          }
+        });
+      },
+      { rootMargin: "240px 0px", threshold: 0.2 }
+    );
 
   panels.value.forEach((panel) => {
     if (panel) videoObserver.observe(panel);
