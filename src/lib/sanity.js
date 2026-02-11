@@ -6,26 +6,36 @@ const USE_PROXY =
   !import.meta.env.SSR &&
   String(import.meta.env.VITE_SANITY_USE_PROXY ?? "true").toLowerCase() !== "false";
 
+const queryCache = new Map();
+
 const fetchSanity = async (query) => {
+  if (!query) return [];
+  if (queryCache.has(query)) return queryCache.get(query);
+
   const encodedQuery = encodeURIComponent(query);
   const apiHost = SANITY_TOKEN ? "api.sanity.io" : "apicdn.sanity.io";
   const queryUrl = USE_PROXY
     ? `/api/sanity?query=${encodedQuery}`
     : `https://${SANITY_PROJECT_ID}.${apiHost}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`;
 
-  try {
-    const response = await fetch(
-      queryUrl,
-      !USE_PROXY && SANITY_TOKEN
-        ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
-        : undefined
-    );
-    if (!response.ok) return [];
-    const data = await response.json();
-    return Array.isArray(data?.result) ? data.result : [];
-  } catch {
-    return [];
-  }
+  const request = (async () => {
+    try {
+      const response = await fetch(
+        queryUrl,
+        !USE_PROXY && SANITY_TOKEN
+          ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
+          : undefined
+      );
+      if (!response.ok) return [];
+      const data = await response.json();
+      return Array.isArray(data?.result) ? data.result : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  queryCache.set(query, request);
+  return request;
 };
 
 export const fetchHomeWorkItems = async () => {
@@ -41,3 +51,6 @@ export const fetchWorksItems = async () => {
   const result = await fetchSanity(galleryQuery);
   return result.filter((item) => item?.image || item?.video);
 };
+
+export const prefetchHomeWorkItems = () => fetchHomeWorkItems();
+export const prefetchWorksItems = () => fetchWorksItems();

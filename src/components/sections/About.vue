@@ -6,7 +6,7 @@
           <div ref="imageFrame" class="image-frame">
             <div ref="imageReveal" class="image-reveal">
               <video ref="imageEl" class="about__image" :src="videoReady ? profileImg : undefined" muted loop
-                :autoplay="videoReady" playsinline :preload="videoReady ? 'metadata' : 'none'" aria-hidden="true"
+                :autoplay="videoReady" playsinline :preload="videoReady ? 'auto' : 'none'" aria-hidden="true"
                 role="presentation" tabindex="-1">
                 <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
               </video>
@@ -110,6 +110,29 @@ const scheduleScrollRefresh = () => {
   });
 };
 
+const warmVideo = async () => {
+  if (videoReady.value) return;
+  videoReady.value = true;
+  await nextTick();
+  imageEl.value?.load?.();
+  imageEl.value?.play?.().catch(() => {});
+  videoObserver?.disconnect();
+  videoObserver = null;
+  scheduleScrollRefresh();
+};
+
+const scheduleWarmVideo = () => {
+  if (typeof window === "undefined") return;
+  const start = () => {
+    void warmVideo();
+  };
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(start, { timeout: 1500 });
+  } else {
+    window.setTimeout(start, 250);
+  }
+};
+
 const waitForGsap = async (timeoutMs = 2000) => {
   const start = performance.now();
   while (performance.now() - start < timeoutMs) {
@@ -149,6 +172,9 @@ const buildAnimation = async () => {
     const root = aboutRef.value;
     if (!root) return;
     const ctaReveal = ctaRef.value?.querySelector(".reveal");
+    if (imageEl.value) {
+      gsap.set(imageEl.value, { force3D: true, transformOrigin: "50% 50%" });
+    }
     const setFinal = () => {
       if (imageFrame.value) gsap.set(imageFrame.value, { opacity: 1, yPercent: 0 });
       if (imageReveal.value) gsap.set(imageReveal.value, { clipPath: "inset(0 0 0% 0)" });
@@ -190,7 +216,7 @@ const buildAnimation = async () => {
         )
         .from(
           imageEl.value,
-          { scale: 1.12, yPercent: 6, duration: 1.2, ease: "power3.out" },
+          { scale: 1.12, duration: 1.2, ease: "power3.out" },
           0.1
         );
     }
@@ -219,6 +245,7 @@ const buildAnimation = async () => {
             scrub: true,
             invalidateOnRefresh: true,
           },
+          overwrite: "auto",
         }
       );
     }
@@ -235,23 +262,21 @@ const onResize = () => {
 };
 
 onMounted(() => {
+  scheduleWarmVideo();
+
   if (typeof window !== "undefined" && "IntersectionObserver" in window) {
     videoObserver = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
-          videoReady.value = true;
-          imageEl.value?.play?.().catch(() => { });
-          scheduleScrollRefresh();
-          videoObserver?.disconnect();
-          videoObserver = null;
+          void warmVideo();
         }
       },
-      { rootMargin: "280px 0px", threshold: 0.1 }
+      { rootMargin: "480px 0px", threshold: 0.1 }
     );
 
     if (aboutRef.value) videoObserver.observe(aboutRef.value);
   } else {
-    videoReady.value = true;
+    void warmVideo();
   }
 
   imageEl.value?.addEventListener?.(
@@ -367,6 +392,8 @@ onBeforeUnmount(() => {
   object-fit: cover;
   display: block;
   will-change: transform;
+  backface-visibility: hidden;
+  transform-origin: center;
 }
 
 

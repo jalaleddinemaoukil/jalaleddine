@@ -3,7 +3,12 @@ import { ViteSSG } from "vite-ssg";
 import App from "@/App.vue";
 import { routes } from "@/router/routes.js";
 import { initLenis } from "@/scripts/lenis-init.js";
-import { fetchHomeWorkItems, fetchWorksItems } from "@/lib/sanity.js";
+import {
+  fetchHomeWorkItems,
+  fetchWorksItems,
+  prefetchHomeWorkItems,
+  prefetchWorksItems,
+} from "@/lib/sanity.js";
 
 const scrollBehavior = (to, from, savedPosition) => {
   if (savedPosition) return savedPosition;
@@ -51,6 +56,19 @@ export const createApp = ViteSSG(
     if (isClient) {
       initLenis();
 
+      const prefetchSanity = () => {
+        prefetchHomeWorkItems();
+        prefetchWorksItems();
+      };
+
+      if (typeof window !== "undefined") {
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(prefetchSanity, { timeout: 2000 });
+        } else {
+          window.setTimeout(prefetchSanity, 250);
+        }
+      }
+
       router.afterEach(() => {
         requestAnimationFrame(() => {
           window.dispatchEvent(new Event("app:route-change"));
@@ -60,4 +78,3 @@ export const createApp = ViteSSG(
     }
   }
 );
-

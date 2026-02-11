@@ -105,6 +105,7 @@ let resizeTimer = null;
 let resizeHandler = null;
 let scrollHandler = null;
 let videoObserver = null;
+const PREWARM_COUNT = 1;
 
 const isSanityImage = (url) => typeof url === "string" && url.includes("cdn.sanity.io/images/");
 
@@ -382,10 +383,18 @@ const resetRefs = () => {
   bgImages.value = [];
 };
 
+const primeMediaState = () => {
+  const count = Math.min(PREWARM_COUNT, items.value.length);
+  bgReady.value = items.value.map((_, idx) => idx < count);
+  videoReady.value = items.value.map(() => false);
+};
+
 const initObservers = () => {
   if (typeof window === "undefined") return;
   videoObserver?.disconnect();
   videoObserver = null;
+
+  primeMediaState();
 
   if (!("IntersectionObserver" in window)) {
     bgReady.value = items.value.map(() => true);
