@@ -32,7 +32,7 @@
         </div>
         <div class="work__meta work__meta--left">{{ item.title }}</div>
         <div class="work__meta work__meta--right">
-          <span class="work__meta-mark">↳</span>
+          <span class="work__meta-mark">-&gt;</span>
           <span class="work__meta-copy">{{ item.description }}</span>
         </div>
         <a
@@ -76,16 +76,6 @@
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import RevealText from "../base/RevealText.vue";
-import projectVideo from "../../assets/videos/projects/noiriv.mp4";
-import bgOne from "../../assets/images/bg/bg-1.webp";
-import bgTwo from "../../assets/images/bg/bg-2.webp";
-import bgThree from "../../assets/images/bg/bg-3.webp";
-
-const videoSrc = typeof projectVideo === "string" ? projectVideo : projectVideo.src;
-const bgOneSrc = typeof bgOne === "string" ? bgOne : bgOne.src;
-const bgTwoSrc = typeof bgTwo === "string" ? bgTwo : bgTwo.src;
-const bgThreeSrc = typeof bgThree === "string" ? bgThree : bgThree.src;
-
 const router = useRouter();
 
 const props = defineProps({
@@ -95,34 +85,7 @@ const props = defineProps({
   },
 });
 
-const fallbackItems = [
-  {
-    src: videoSrc,
-    bg: bgOneSrc,
-    alt: "Featured Web Design & Development work visual 1",
-    title: "Noiriv",
-    description: "Noiriv",
-    href: "/works",
-  },
-  {
-    src: videoSrc,
-    bg: bgTwoSrc,
-    alt: "Featured work visual 2",
-    title: "Featured Work 2",
-    description: "A cinematic product story and interaction layer built for performance.",
-    href: "/works",
-  },
-  {
-    src: videoSrc,
-    bg: bgThreeSrc,
-    alt: "Featured work visual 3",
-    title: "Featured Work 3",
-    description: "A bold brand system and immersive experience design.",
-    href: "/works",
-  },
-];
-
-const items = computed(() => (props.items?.length ? props.items : fallbackItems));
+const items = computed(() => (Array.isArray(props.items) ? props.items : []));
 
 const handleMediaClick = (href, event) => {
   if (!href || typeof href !== "string") return;
@@ -589,7 +552,7 @@ onBeforeUnmount(() => {
 .work__meta {
   position: absolute;
   z-index: 2;
-  color: #fff;
+  color: var(--color-white);
   font-size: var(--text-sm);
   font-weight: 400;
   letter-spacing: var(--tracking-label);
@@ -625,7 +588,7 @@ onBeforeUnmount(() => {
   position: relative;
   width: min(56vw, 660px);
   aspect-ratio: 16 / 9;
-  background: rgba(10, 10, 10, 0.65);
+  background: rgba(0, 0, 0, 0.65);
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.25),
     0 6px 18px rgba(0, 0, 0, 0.25);
@@ -650,10 +613,10 @@ onBeforeUnmount(() => {
   width: 120px;
   height: 44px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(237, 237, 237, 0.35);
   background:
-    linear-gradient(135deg, rgba(20, 20, 20, 0.85), rgba(10, 10, 10, 0.65));
-  color: #fff;
+    linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.65));
+  color: var(--color-white);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -666,7 +629,7 @@ onBeforeUnmount(() => {
   opacity: 0;
   box-shadow:
     0 16px 35px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    inset 0 0 0 1px rgba(237, 237, 237, 0.08);
   will-change: transform, opacity;
   z-index: 3;
 }
@@ -676,8 +639,8 @@ onBeforeUnmount(() => {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  background: rgba(237, 237, 237, 0.85);
+  box-shadow: 0 0 10px rgba(237, 237, 237, 0.6);
   display: inline-block;
 }
 
@@ -765,3 +728,5 @@ onBeforeUnmount(() => {
   border: 0;
 }
 </style>
+
+

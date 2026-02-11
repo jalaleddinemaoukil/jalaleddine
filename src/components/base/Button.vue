@@ -160,7 +160,7 @@ export default {
   font-weight: var(--btn-fw, inherit);
   letter-spacing: 0.04em;
 
-  color: var(--color-ink, #131313);
+  color: var(--color-ink, #000000);
   cursor: pointer;
   border-radius: 0.25em;
   justify-content: center;
@@ -268,7 +268,7 @@ export default {
 }
 
 .btn-animate-chars__bg {
-  background-color: var(--color-cta-bg, #efeeec);
+  background-color: var(--color-cta-bg, #ededed);
   border-radius: 0.25em;
   position: absolute;
   inset: 0;
@@ -295,3 +295,5 @@ export default {
   }
 }
 </style>
+
+

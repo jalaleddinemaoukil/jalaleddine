@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div
     id="preloader"
     class="preloader"
@@ -66,10 +66,11 @@ import { onMounted, onBeforeUnmount } from "vue";
 import profileImage from "../assets/images/profile.webp";
 
 const PRELOADER_CONFIG = {
-  ENTER_MS: 800,
-  PROGRESS_MS: 900,
-  EXIT_MS: 650,
-  MAX_TOTAL_MS: 4500,
+  ENTER_MS: 1200,
+  PROGRESS_MS: 1600,
+  HOLD_MS: 450,
+  EXIT_MS: 900,
+  MAX_TOTAL_MS: 6500,
   SESSION_KEY: "preloaderShown_v7",
   SKIP_ON_CLIENT_SWAPS: true,
 };
@@ -202,13 +203,15 @@ onMounted(() => {
     const showText = () => {
       if (el.nameText) {
         el.nameText.style.visibility = "visible";
-        if (!el.nameText.textContent?.trim() && el.nameText.dataset.originalText) {
+        const hasSplit = !!el.nameText.querySelector?.(".word");
+        if (!hasSplit && !el.nameText.textContent?.trim() && el.nameText.dataset.originalText) {
           el.nameText.textContent = el.nameText.dataset.originalText;
         }
       }
       if (el.copyText) {
         el.copyText.style.visibility = "visible";
-        if (!el.copyText.textContent?.trim() && el.copyText.dataset.originalText) {
+        const hasSplit = !!el.copyText.querySelector?.(".word");
+        if (!hasSplit && !el.copyText.textContent?.trim() && el.copyText.dataset.originalText) {
           el.copyText.textContent = el.copyText.dataset.originalText;
         }
       }
@@ -268,7 +271,7 @@ onMounted(() => {
       // Avoid delaying first paint on font/image readiness
 
       gsap.set([el.nameText, el.copyText].filter(Boolean), { visibility: "visible" });
-      const shouldSplitText = false;
+      const shouldSplitText = true;
       let headingWords = [];
       let copyWords = [];
       if (shouldSplitText) {
@@ -281,6 +284,7 @@ onMounted(() => {
 
       const enter = (CONFIG.ENTER_MS || 1100) / 1000;
       const prog = (CONFIG.PROGRESS_MS || 1400) / 1000;
+      const hold = (CONFIG.HOLD_MS || 0) / 1000;
       const exit = (CONFIG.EXIT_MS || 850) / 1000;
 
       gsap.set(preloader, { opacity: 1, yPercent: 0, display: "block" });
@@ -376,6 +380,9 @@ onMounted(() => {
       tl.add(() => {
         window.dispatchEvent(new CustomEvent("preloaderExit", { detail: { reason: "completed" } }));
       }, ">");
+      if (hold > 0) {
+        tl.to({}, { duration: hold });
+      }
 
       if (accents.length) {
         tl.to(
@@ -537,7 +544,7 @@ onBeforeUnmount(() => {
     position: fixed;
     inset: 0;
     height: 100dvh;
-    background: linear-gradient(165deg, #000 0%, #0a0a0a 100%);
+    background: var(--color-bg);
     z-index: 10002;
     overflow: hidden;
     font-family: var(--font-main);
@@ -558,7 +565,7 @@ onBeforeUnmount(() => {
     position: relative;
     height: 100%;
     width: 100%;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(237, 237, 237, 0.06);
     overflow: hidden;
   }
   .progress__bar {
@@ -568,9 +575,9 @@ onBeforeUnmount(() => {
     transform: scaleX(0);
     background: linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.6) 0%,
-      rgba(255, 255, 255, 0.95) 50%,
-      rgba(255, 255, 255, 1) 100%
+      rgba(237, 237, 237, 0.6) 0%,
+      rgba(237, 237, 237, 0.95) 50%,
+      rgba(237, 237, 237, 1) 100%
     );
     will-change: transform;
   }
@@ -584,7 +591,7 @@ onBeforeUnmount(() => {
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.4) 50%,
+      rgba(237, 237, 237, 0.4) 50%,
       transparent 100%
     );
     opacity: 0;
@@ -605,7 +612,7 @@ onBeforeUnmount(() => {
     inset: 0;
     background: radial-gradient(
       ellipse 80% 60% at 50% 45%,
-      rgba(255, 255, 255, 0.03) 0%,
+      rgba(237, 237, 237, 0.03) 0%,
       transparent 70%
     );
     opacity: 0;
@@ -652,7 +659,7 @@ onBeforeUnmount(() => {
   .wipe {
     position: absolute;
     inset: 0;
-    background: #000;
+    background: var(--color-bg);
     transform-origin: 50% 100%;
     transform: scaleY(1);
     will-change: transform;
@@ -668,7 +675,7 @@ onBeforeUnmount(() => {
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.25) 50%,
+      rgba(237, 237, 237, 0.25) 50%,
       transparent 100%
     );
     will-change: transform, opacity;
@@ -700,7 +707,7 @@ onBeforeUnmount(() => {
     width: min(88%, 580px);
     max-width: 94%;
     padding: 0 1rem;
-    color: rgba(255, 255, 255, 0.88);
+    color: rgba(237, 237, 237, 0.88);
     text-transform: uppercase;
     text-align: center;
     letter-spacing: var(--tracking-label);
@@ -725,7 +732,7 @@ onBeforeUnmount(() => {
     margin-inline: auto;
   }
   .name [data-name-text] {
-    color: #fff;
+    color: var(--color-white);
     text-transform: uppercase;
     font-weight: 600;
     font-size: clamp(1.85rem, 8.5vw, 7.5rem);
@@ -736,7 +743,7 @@ onBeforeUnmount(() => {
     text-align: center;
     text-shadow:
       0 2px 18px rgba(0, 0, 0, 0.6),
-      0 0 40px rgba(255, 255, 255, 0.08);
+      0 0 40px rgba(237, 237, 237, 0.08);
   }
   @media (max-width: 540px) {
     .name [data-name-text] {
@@ -777,3 +784,5 @@ onBeforeUnmount(() => {
     transform: translate3d(0, -8px, 0);
   }
 </style>
+
+

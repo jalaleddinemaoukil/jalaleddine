@@ -44,7 +44,7 @@
             <li class="sidenav__menu-list-item" v-for="(item, idx) in items" :key="item.href">
               <a
                 class="sidenav__menu-link"
-                :href="item.isMail ? '#contact' : item.href"
+                :href="item.isMail ? 'mailto:jalaleddinemaoukil@gmail.com' : item.href"
                 :data-mailto="item.isMail ? mailtoEncoded : null"
                 :aria-label="item.label"
                 data-sidenav-link
@@ -103,16 +103,17 @@ const props = defineProps({
       { label: "Works", href: "/works", eyebrow: "02" },
       { label: "Info", href: "/info", eyebrow: "03" },
       { label: "Blog", href: "/blog", eyebrow: "04" },
-      { label: "Contact", href: "#contact", eyebrow: "05", isMail: true },
+      { label: "Contact", href: "mailto:jalaleddinemaoukil@gmail.com", eyebrow: "05", isMail: true },
     ]),
   },
 
   socials: {
     type: Array,
     default: () => ([
-      { label: "Instagram", href: "https://www.instagram.com/jalal.edn/" },
       { label: "LinkedIn", href: "https://www.linkedin.com/in/jalal-eddine-maoukil/" },
       { label: "GitHub", href: "https://github.com/jalaleddinemaoukil" },
+      { label: "Muzli", href: "https://me.muz.li/jalaledn" },
+      
     ]),
   },
 });
@@ -480,7 +481,7 @@ onBeforeUnmount(() => {
 .sidenav__overlay {
   z-index: 0;
   cursor: pointer;
-  background: rgba(19, 19, 19, 0.4);
+  background: rgba(0, 0, 0, 0.4);
   width: 100%;
   height: 100%;
   position: absolute;
@@ -570,7 +571,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 .sidenav__menu-link {
-  color: #131313;
+  color: var(--color-bg);
   width: 100%;
   padding: clamp(0.5em, 2vh, 0.75em) 0;
   padding-left: clamp(1.25em, 4vw, 1.75em);
@@ -583,7 +584,7 @@ onBeforeUnmount(() => {
 }
 .sidenav__menu-link-heading {
   margin: 0;
-  color: #131313;
+  color: var(--color-bg);
   font-size: 3.8em;
   font-weight: 400;
   line-height: 0.75;
@@ -592,7 +593,7 @@ onBeforeUnmount(() => {
   font-family: var(--font-main);
   position: relative;
   z-index: 2;
-  text-shadow: 0px 1em 0px rgb(255, 255, 255);
+  text-shadow: 0px 1em 0px rgb(237, 237, 237);
   transition: transform 0.55s cubic-bezier(0.65, 0.05, 0, 1);
   transition-delay: 0s;
 }
@@ -602,7 +603,7 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   letter-spacing: var(--tracking-label, 0.08em);
   opacity: 0.9;
-  color: #131313;
+  color: var(--color-bg);
   position: relative;
   z-index: 2;
   display: inline-block;
@@ -621,7 +622,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: black;
+  background: var(--color-bg);
 }
 
 .sidenav__menu-link:hover .sidenav__menu-link-heading {
@@ -634,8 +635,8 @@ onBeforeUnmount(() => {
 }
 
 .sidenav__menu-link:hover .sidenav__menu-link-eyebrow {
-  background: #000;
-  color: #fff;
+  background: var(--color-bg);
+  color: var(--color-white);
   transform: translateY(-0.08em);
 }
 
@@ -647,7 +648,7 @@ onBeforeUnmount(() => {
   margin-top: auto;
   padding-top: clamp(1.5rem, 3vh, 2rem);
   gap: 1.25em;
-  color: #131313;
+  color: var(--color-bg);
 }
 .sidenav__meta-label {
   margin: 0;
@@ -660,7 +661,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 .sidenav__meta-link {
-  color: #131313;
+  color: var(--color-bg);
   text-decoration: none;
   font-size: 1.125em;
   line-height: 1.4;
@@ -738,3 +739,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+

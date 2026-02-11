@@ -340,6 +340,11 @@ onBeforeUnmount(() => {
   transform: translate3d(0, 0, 0);
 }
 
+.about :deep(.btn-animate-chars) {
+  --color-cta-bg: var(--color-bg);
+  --color-ink: var(--color-white);
+}
+
 .philosophy .reveal {
   display: inline;
 }
@@ -364,7 +369,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--color-white);
   will-change: transform;
   transform-origin: bottom;
   clip-path: inset(0 0 0 0);
@@ -476,3 +481,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+

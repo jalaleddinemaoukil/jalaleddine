@@ -44,7 +44,7 @@
                 <RouterLink class="site-footer__link" to="/#services">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Services</RevealText>
                 </RouterLink>
-                <RouterLink class="site-footer__link" to="/#about">
+                <RouterLink class="site-footer__link" to="/info">
                   <RevealText tag="span" :scroll="true" splitReveal="words">About</RevealText>
                 </RouterLink>
               </div>
@@ -62,8 +62,8 @@
                 <a class="site-footer__link" href="https://github.com/jalaleddinemaoukil" target="_blank" rel="noopener noreferrer">
                   <RevealText tag="span" :scroll="true" splitReveal="words">GitHub</RevealText>
                 </a>
-                 <a class="site-footer__link" href="https://www.instagram.com/jalal.edn/" target="_blank" rel="noopener noreferrer">
-                  <RevealText tag="span" :scroll="true" splitReveal="words">Instagram</RevealText>
+                 <a class="site-footer__link" href="https://me.muz.li/jalaledn" target="_blank" rel="noopener noreferrer">
+                  <RevealText tag="span" :scroll="true" splitReveal="words">Muzli</RevealText>
                 </a>
               </div>
             </div>
@@ -73,6 +73,9 @@
             <RevealText tag="p" :scroll="true" splitReveal="words">
               © 2026 Jalal Eddine Maoukil. All rights reserved.
             </RevealText>
+            <RouterLink class="site-footer__legal-link" to="/privacy-policy">
+              <RevealText tag="span" :scroll="true" splitReveal="words">Privacy Policy</RevealText>
+            </RouterLink>
           </div>
         </div>
       </div>
@@ -129,8 +132,8 @@ onBeforeUnmount(() => {
 .site-footer {
   position: relative;
   min-height: 100vh;
-  background-color: #ffffff;
-  color: #0b0b0b;
+  background-color: var(--color-white);
+  color: var(--color-ink);
   overflow: visible;
   z-index: 12;
   isolation: isolate;
@@ -139,7 +142,7 @@ onBeforeUnmount(() => {
 .site-footer__overlay {
   position: absolute;
   inset: 0;
-  background: #ffffff;
+  background: var(--color-white);
   opacity: 0.7;
   transform: scaleY(1);
   transform-origin: 50% 100%;
@@ -283,13 +286,52 @@ onBeforeUnmount(() => {
 }
 
 .site-footer__link:focus-visible {
-  outline: 2px solid rgba(0, 0, 0, 0.5);
+  outline: 2px solid rgba(0, 0, 0, 0.6);
   outline-offset: 3px;
 }
 
 .site-footer__legal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   font-size: 0.85rem;
   opacity: 0.8;
+}
+
+.site-footer__legal-link {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.75;
+  position: relative;
+  width: fit-content;
+}
+
+.site-footer__legal-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.05em;
+  height: 1px;
+  background: currentColor;
+  transform-origin: right center;
+  transform: scaleX(0);
+  transition: transform 0.4s cubic-bezier(0.65, 0.05, 0, 1);
+}
+
+.site-footer__legal-link:hover {
+  opacity: 1;
+}
+
+.site-footer__legal-link:hover::after,
+.site-footer__legal-link:focus-visible::after {
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+
+.site-footer__legal-link:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.6);
+  outline-offset: 3px;
 }
 
 .site-footer :deep(.line),
@@ -299,8 +341,8 @@ onBeforeUnmount(() => {
 }
 
 .site-footer :deep(.btn-animate-chars) {
-  --color-cta-bg: #0b0b0b;
-  --color-ink: #ffffff;
+  --color-cta-bg: var(--color-bg);
+  --color-ink: var(--color-white);
 }
 
 .site-footer :deep(.line) {

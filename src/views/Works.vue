@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <main>
     <section class="works-hero">
       <div class="works-hero__inner">
@@ -574,8 +574,8 @@ onBeforeUnmount(() => {
 <style scoped>
   .works-hero {
     min-height: 100svh;
-    background: #ffffff;
-    color: #0b0b0b;
+    background: var(--color-white);
+    color: var(--color-ink);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -601,7 +601,7 @@ onBeforeUnmount(() => {
     min-height: 100vh;
     display: flex;
     position: relative;
-    background-color: #0a0a0a;
+    background-color: var(--color-bg);
   }
 
   .slider__main {
@@ -665,9 +665,9 @@ onBeforeUnmount(() => {
     grid-column-gap: 0.4em;
     grid-row-gap: 0.4em;
     backdrop-filter: blur(5px);
-    color: #fff;
+    color: var(--color-white);
     white-space: nowrap;
-    background-color: #efeeec26;
+    background-color: rgba(237, 237, 237, 0.15);
     border-radius: 0.25em;
     justify-content: flex-start;
     align-items: center;
@@ -683,7 +683,7 @@ onBeforeUnmount(() => {
   }
 
   .slide__caption-dot {
-    background-color: #a1ff62;
+    background-color: var(--color-white);
     border-radius: 10em;
     flex: none;
     width: 0.5em;
@@ -698,8 +698,8 @@ onBeforeUnmount(() => {
 
   .slider__overlay {
     z-index: 2;
-    color: #fff;
-    background-image: linear-gradient(90deg, #0a0a0a 85%, #0a0a0a00);
+    color: var(--color-white);
+    background-image: linear-gradient(90deg, var(--color-bg) 85%, rgba(0, 0, 0, 0));
     justify-content: flex-start;
     align-items: center;
     width: var(--overlay-width);
@@ -744,7 +744,7 @@ onBeforeUnmount(() => {
   }
 
   .slider__count-divider {
-    background-color: #efeeec;
+    background-color: var(--color-white);
     width: 2px;
     height: 0.75em;
     transform: rotate(15deg);
@@ -757,9 +757,9 @@ onBeforeUnmount(() => {
   }
 
   .slider__btn {
-    color: #fff;
-    background-color: #0000;
-    border: 1px solid #fff3;
+    color: var(--color-white);
+    background-color: transparent;
+    border: 1px solid rgba(237, 237, 237, 0.2);
     border-radius: 0.4em;
     justify-content: center;
     align-items: center;
@@ -790,8 +790,8 @@ onBeforeUnmount(() => {
   }
 
   .slider__btn-overlay-corner {
-    border-top: 1px solid #efeeec;
-    border-left: 1px solid #efeeec;
+    border-top: 1px solid var(--color-white);
+    border-left: 1px solid var(--color-white);
     border-top-left-radius: 0.4em;
     width: 1em;
     height: 1em;
@@ -931,3 +931,5 @@ onBeforeUnmount(() => {
     }
   }
 </style>
+
+

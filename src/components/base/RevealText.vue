@@ -14,6 +14,7 @@ import { onMounted, onBeforeUnmount, ref } from "vue";
 const props = defineProps({
   tag: { type: String, default: "div" },
   customClass: { type: [String, Array, Object], default: "" },
+  enableSplit: { type: Boolean, default: true },
   splitReveal: { type: String, default: "lines" }, // lines | words | chars
   scroll: { type: Boolean, default: true },
   start: { type: String, default: "clamp(top 80%)" },
@@ -58,7 +59,9 @@ const waitForGsap = async (timeoutMs = 2000) => {
   const start = performance.now();
   while (performance.now() - start < timeoutMs) {
     const pack = ensurePlugins();
-    if (pack?.gsap && pack?.SplitText && (!props.scroll || pack?.ScrollTrigger)) return pack;
+    const hasScroll = !props.scroll || pack?.ScrollTrigger;
+    const hasSplit = !props.enableSplit || pack?.SplitText;
+    if (pack?.gsap && hasSplit && hasScroll) return pack;
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   return ensurePlugins();
@@ -95,13 +98,55 @@ const build = async (options = {}) => {
 
   cleanup();
 
-  if (prefersReducedMotion() || !SplitText || (props.scroll && !ScrollTrigger)) {
+  if (prefersReducedMotion()) {
     g.set(el.value, { clearProps: "all" });
-    if (!prefersReducedMotion() && (!SplitText || (props.scroll && !ScrollTrigger)) && retryCount < MAX_RETRIES) {
+    buildInProgress = false;
+    return;
+  }
+
+  if (props.scroll && !ScrollTrigger) {
+    g.set(el.value, { clearProps: "all" });
+    if (retryCount < MAX_RETRIES) {
       retryCount += 1;
       retryTimer = setTimeout(() => void build(), 300);
     }
     buildInProgress = false;
+    return;
+  }
+
+  if (!props.enableSplit || !SplitText) {
+    g.set(el.value, { autoAlpha: 1 });
+    if (props.enableSplit && !SplitText && retryCount < MAX_RETRIES) {
+      retryCount += 1;
+      retryTimer = setTimeout(() => void build(), 300);
+    }
+    tween = g.fromTo(
+      el.value,
+      { yPercent: 20 },
+      {
+        yPercent: 0,
+        duration: 0.6,
+        ease: props.ease,
+        immediateRender: !props.scroll,
+        paused,
+        ...(props.scroll
+          ? {
+              scrollTrigger: {
+                trigger: el.value,
+                start: props.start,
+                once: props.once,
+              },
+            }
+          : {}),
+      }
+    );
+
+    if (paused) tween.pause(0);
+    buildInProgress = false;
+    if (pendingPlay && tween && !props.scroll) {
+      pendingPlay = false;
+      tween.play(0);
+    }
     return;
   }
 

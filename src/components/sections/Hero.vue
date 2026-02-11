@@ -5,7 +5,13 @@
     <div class="hero__content">
       <div class="hero__grid">
         <div class="hero__text">
-          <RevealText tag="p" :scroll="false" :waitForPreloader="true" class="hero__heading">
+          <RevealText
+            tag="p"
+            :scroll="false"
+            :waitForPreloader="true"
+            :enableSplit="false"
+            class="hero__heading"
+          >
             Your website should work as hard as you do.
             <br />
             In today's digital landscape, your online presence isn't just a business card. it's your most powerful growth engine.
@@ -63,8 +69,8 @@ onBeforeUnmount(() => {
   align-items: flex-end;
   min-height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
-  background-color: #ffffff;
-  color: #0b0b0b;
+  background-color: var(--color-white);
+  color: var(--color-ink);
   user-select: none;
   pointer-events: none;
 }
@@ -133,8 +139,8 @@ onBeforeUnmount(() => {
 }
 
 .hero :deep(.btn-animate-chars) {
-  --color-cta-bg: #0b0b0b;
-  --color-ink: #ffffff;
+  --color-cta-bg: var(--color-bg);
+  --color-ink: var(--color-white);
 }
 
 @media (min-width: 768px) {

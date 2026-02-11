@@ -1,4 +1,13 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.sanity.io https://cdn.prod.website-files.com; font-src 'self' data:; connect-src 'self' https://*.sanity.io; media-src 'self' blob: https://*.sanity.io; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests"
+        }
+      ]
+    }
+  ]
 }

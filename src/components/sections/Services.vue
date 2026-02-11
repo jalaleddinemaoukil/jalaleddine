@@ -65,7 +65,7 @@ const services = [
   },
   {
     id: 3,
-    title: "Performance & Optimization",
+    title: "Performance & Security",
     subtitle: "Speed that converts",
     description:
       "Fast load times. Clean code. Better user experience. I turn slow, bloated applications into lean, efficient ones. 30% faster isn't luck it's intentional optimization.",
@@ -355,7 +355,7 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(237, 237, 237, 0.7);
   margin: 0;
 }
 
@@ -370,7 +370,7 @@ onBeforeUnmount(() => {
 .services__subhead {
   font-size: var(--text-lg);
   line-height: var(--lh-base);
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(237, 237, 237, 0.72);
   margin: 0;
   letter-spacing: var(--tracking-body);
 }
@@ -380,7 +380,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 0;
   margin-top: clamp(3rem, 8vw, 6rem);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(237, 237, 237, 0.08);
 }
 
 
@@ -396,7 +396,7 @@ onBeforeUnmount(() => {
 .service {
   position: relative;
   padding-block: clamp(2.5rem, 6vw, 5rem);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(237, 237, 237, 0.08);
 }
 
 .service__inner {
@@ -519,3 +519,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+
