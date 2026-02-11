@@ -86,6 +86,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 const mailtoEncoded =
   "&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#97;&#108;&#97;&#108;&#101;&#100;&#100;&#105;&#110;&#101;&#109;&#97;&#111;&#117;&#107;&#105;&#108;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;";
@@ -115,6 +116,9 @@ const props = defineProps({
     ]),
   },
 });
+
+const router = useRouter();
+const route = useRoute();
 
 const root = ref(null);
 const menuButton = ref(null);
@@ -268,38 +272,42 @@ const handleLinkClick = (event, item) => {
   // internal route
   if (href.startsWith("/")) {
     setTimeout(() => {
-      window.history.pushState({}, "", href);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      router.push(href);
     }, 250);
     return;
   }
 
   // anchor
-  const el = document.querySelector(href);
-  if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 250);
+  if (href.startsWith("#")) {
+    setTimeout(() => {
+      if (route.path !== "/") {
+        router.push({ path: "/", hash: href });
+        return;
+      }
+      const el = document.querySelector(href);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, 250);
+  }
 };
 
 const handleBrandClick = (event) => {
   const href = props.brandHref || "/#hero";
-  const isHome = window.location.pathname === "/" || window.location.pathname === "";
+  const isHome = route.path === "/";
+  const targetHash = href.includes("#") ? `#${href.split("#")[1] || "hero"}` : "#hero";
 
-  if (isHome && href.includes("#")) {
-    event?.preventDefault?.();
-    const hash = href.split("#")[1];
-    const target = hash ? `#${hash}` : "#hero";
-    const el = document.querySelector(target);
+  event?.preventDefault?.();
+
+  if (isHome) {
+    const el = document.querySelector(targetHash);
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
-      window.history.replaceState({}, "", target);
+      return;
     }
+    router.push({ path: "/", hash: targetHash });
     return;
   }
 
-  // Not on home: redirect to home hero
-  if (!isHome) {
-    event?.preventDefault?.();
-    window.location.href = href.startsWith("/") ? href : `/${href.replace(/^#/, "#")}`;
-  }
+  router.push({ path: "/", hash: targetHash });
 };
 
 onMounted(() => {

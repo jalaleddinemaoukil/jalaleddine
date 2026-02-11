@@ -39,6 +39,7 @@
           class="work__media-link"
           :href="item.href"
           :aria-label="item.title ? `View ${item.title} project` : 'View project'"
+          @click="handleMediaClick(item.href, $event)"
           @pointermove="onCursorMove"
           @pointerenter="onCursorEnter"
           @pointerleave="onCursorLeave"
@@ -72,7 +73,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import RevealText from "../base/RevealText.vue";
 import projectVideo from "../../assets/videos/projects/noiriv.mp4";
 import bgOne from "../../assets/images/bg/bg-1.webp";
@@ -83,6 +85,8 @@ const videoSrc = typeof projectVideo === "string" ? projectVideo : projectVideo.
 const bgOneSrc = typeof bgOne === "string" ? bgOne : bgOne.src;
 const bgTwoSrc = typeof bgTwo === "string" ? bgTwo : bgTwo.src;
 const bgThreeSrc = typeof bgThree === "string" ? bgThree : bgThree.src;
+
+const router = useRouter();
 
 const props = defineProps({
   items: {
@@ -119,6 +123,13 @@ const fallbackItems = [
 ];
 
 const items = computed(() => (props.items?.length ? props.items : fallbackItems));
+
+const handleMediaClick = (href, event) => {
+  if (!href || typeof href !== "string") return;
+  if (!href.startsWith("/")) return;
+  event?.preventDefault?.();
+  router.push(href);
+};
 
 const panels = ref([]);
 const images = ref([]);
@@ -202,10 +213,7 @@ const scheduleScrollRefresh = () => {
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ||
-    window.matchMedia?.("(pointer: coarse)")?.matches ||
-    navigator.connection?.saveData === true ||
-    (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4) ||
-    (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4));
+    navigator.connection?.saveData === true);
 
 const ensurePlugins = () => {
   if (typeof window === "undefined") return null;
@@ -398,41 +406,66 @@ const onCursorFocus = (event) => {
   panel?.classList.add("is-hovered");
 };
 
-onMounted(() => {
-  if (typeof window !== "undefined" && "IntersectionObserver" in window) {
-    videoObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const idx = Number(entry.target?.dataset?.index ?? -1);
-          if (idx < 0) return;
-          const video = images.value[idx];
-          if (entry.isIntersecting) {
-            bgReady.value[idx] = true;
-            videoReady.value[idx] = true;
-            video?.play?.().catch(() => {});
-            scheduleScrollRefresh();
-          } else {
-            video?.pause?.();
-          }
-        });
-      },
-      { rootMargin: "600px 0px", threshold: 0.2 }
-    );
+const resetMediaState = () => {
+  bgLoaded.value = [];
+  bgReady.value = [];
+  videoReady.value = [];
+};
 
-    panels.value.forEach((panel) => {
-      if (panel) videoObserver.observe(panel);
-    });
-  } else {
+const resetRefs = () => {
+  panels.value = [];
+  images.value = [];
+  medias.value = [];
+  bgImages.value = [];
+};
+
+const initObservers = () => {
+  if (typeof window === "undefined") return;
+  videoObserver?.disconnect();
+  videoObserver = null;
+
+  if (!("IntersectionObserver" in window)) {
     bgReady.value = items.value.map(() => true);
     videoReady.value = items.value.map(() => true);
     scheduleScrollRefresh();
+    return;
   }
 
+  videoObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const idx = Number(entry.target?.dataset?.index ?? -1);
+        if (idx < 0) return;
+        const video = images.value[idx];
+        if (entry.isIntersecting) {
+          bgReady.value[idx] = true;
+          videoReady.value[idx] = true;
+          video?.play?.().catch(() => {});
+          scheduleScrollRefresh();
+        } else {
+          video?.pause?.();
+        }
+      });
+    },
+    { rootMargin: "600px 0px", threshold: 0.2 }
+  );
+
+  panels.value.forEach((panel) => {
+    if (panel) videoObserver.observe(panel);
+  });
+};
+
+const refreshLayout = () => {
   requestAnimationFrame(() => {
     setTimeout(() => {
       buildParallax();
     }, 100);
   });
+};
+
+onMounted(() => {
+  initObservers();
+  refreshLayout();
 
   resizeHandler = () => {
     clearTimeout(resizeTimer);
@@ -449,6 +482,18 @@ onMounted(() => {
   };
   window.addEventListener("scroll", scrollHandler, { passive: true });
 });
+
+watch(
+  items,
+  async () => {
+    resetMediaState();
+    resetRefs();
+    await nextTick();
+    initObservers();
+    refreshLayout();
+  },
+  { deep: false }
+);
 
 onBeforeUnmount(() => {
   if (resizeHandler) window.removeEventListener("resize", resizeHandler);

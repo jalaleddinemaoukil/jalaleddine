@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "lenis/dist/lenis.css";
 
 @font-face {
   font-family: "Oswald";
@@ -93,6 +93,12 @@ body {
   height: 100%;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* Hide native scrollbars while preserving scroll */
 html,
 body {
@@ -107,6 +113,9 @@ body::-webkit-scrollbar {
 }
 
 body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-white);
   font-family: var(--font-main);
   font-size: var(--text-base);
   line-height: var(--lh-base);
@@ -114,6 +123,23 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   font-kerning: normal;
+}
+
+#app {
+  min-height: 100%;
+}
+
+main,
+section {
+  width: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
 }
 
 button,
@@ -187,45 +213,19 @@ textarea {
   padding-block: clamp(56px, 8vw, 120px);
 }
 
-#page-wipe {
+.page-wipe {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 9998;
+  background: #0b0b0b;
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
   pointer-events: none;
-}
-
-.page-wipe__panel {
-  position: absolute;
-  inset: 0;
   will-change: transform;
 }
 
-.page-wipe__panel--white {
-  background: #ffffff;
-  transform: translateY(-100%);
-}
-
-.page-wipe__panel--black {
-  background: #000000;
-  transform: translateY(100%);
-}
-
-#page-wipe.is-entering .page-wipe__panel--white {
-  transform: translateY(0);
-}
-
-#page-wipe.is-enter .page-wipe__panel--white {
-  transition: transform 0.7s cubic-bezier(0.65, 0.05, 0, 1);
-  transform: translateY(-100%);
-}
-
-#page-wipe.is-exit .page-wipe__panel--black {
-  transition: transform 0.6s cubic-bezier(0.65, 0.05, 0, 1);
-  transform: translateY(0);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  #page-wipe {
+  .page-wipe {
     display: none;
   }
 }

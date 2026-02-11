@@ -1,0 +1,65 @@
+﻿import "./styles/global.css";
+import { ViteSSG } from "vite-ssg";
+import App from "@/App.vue";
+import { routes } from "@/router/routes.js";
+import { initLenis } from "@/scripts/lenis-init.js";
+import { initHoverSfx } from "@/scripts/hover-sfx.js";
+import { fetchHomeWorkItems, fetchWorksItems } from "@/lib/sanity.js";
+
+const scrollBehavior = (to, from, savedPosition) => {
+  if (savedPosition) return savedPosition;
+  if (to.hash) {
+    return new Promise((resolve) => {
+      const target = to.hash;
+      let attempts = 0;
+      const maxAttempts = 60;
+
+      const tryScroll = () => {
+        const el = document.querySelector(target);
+        if (el) {
+          resolve({ el: target, behavior: "smooth" });
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          resolve({ top: 0, left: 0, behavior: "auto" });
+          return;
+        }
+
+        attempts += 1;
+        requestAnimationFrame(tryScroll);
+      };
+
+      tryScroll();
+    });
+  }
+  return { top: 0, left: 0, behavior: "auto" };
+};
+
+export const createApp = ViteSSG(
+  App,
+  { routes, scrollBehavior },
+  async ({ router, isClient, initialState, routePath }) => {
+    if (import.meta.env.SSR) {
+      if (routePath === "/") {
+        initialState.homeWorkItems = await fetchHomeWorkItems();
+      }
+      if (routePath === "/works") {
+        initialState.worksItems = await fetchWorksItems();
+      }
+    }
+
+    if (isClient) {
+      initLenis();
+      initHoverSfx();
+
+      router.afterEach(() => {
+        requestAnimationFrame(() => {
+          window.dispatchEvent(new Event("app:route-change"));
+          window.dispatchEvent(new Event("content:loaded"));
+        });
+      });
+    }
+  }
+);
+

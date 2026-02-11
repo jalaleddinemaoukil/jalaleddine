@@ -10,7 +10,6 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from "vue";
-import { gsap } from "gsap";
 
 const props = defineProps({
   tag: { type: String, default: "div" },
@@ -45,7 +44,7 @@ const prefersReducedMotion = () =>
     (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4));
 
 const ensurePlugins = () => {
-  const g = typeof window !== "undefined" && window.gsap ? window.gsap : gsap;
+  const g = typeof window !== "undefined" ? window.gsap : null;
   const SplitText = typeof window !== "undefined" ? window.SplitText : null;
   const ScrollTrigger = typeof window !== "undefined" ? window.ScrollTrigger : null;
   if (!g) return null;

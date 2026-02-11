@@ -38,15 +38,15 @@
                 Explore
               </RevealText>
               <div class="site-footer__link-list">
-                <a class="site-footer__link" href="/works">
+                <RouterLink class="site-footer__link" to="/works">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Work</RevealText>
-                </a>
-                <a class="site-footer__link" href="/#services">
+                </RouterLink>
+                <RouterLink class="site-footer__link" to="/#services">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Services</RevealText>
-                </a>
-                <a class="site-footer__link" href="/#about">
+                </RouterLink>
+                <RouterLink class="site-footer__link" to="/#about">
                   <RevealText tag="span" :scroll="true" splitReveal="words">About</RevealText>
-                </a>
+                </RouterLink>
               </div>
             </div>
 
@@ -141,7 +141,12 @@ onBeforeUnmount(() => {
   inset: 0;
   background: #ffffff;
   opacity: 0.7;
-  transition: opacity 0.6s ease;
+  transform: scaleY(1);
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.9s cubic-bezier(0.22, 0.7, 0.12, 1),
+    opacity 0.6s ease;
+  will-change: transform, opacity;
   z-index: 1;
 }
 
@@ -154,14 +159,12 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   gap: clamp(2rem, 5vw, 3.5rem);
   padding: clamp(4rem, 12vw, 7rem) clamp(16px, 2.2vw, 32px) clamp(3rem, 8vw, 5rem);
-  transform: translate3d(0, 32px, 0) scale(0.985);
+  transform: translate3d(0, 24px, 0);
   opacity: 0;
-  filter: blur(6px);
   transition:
-    transform 0.8s cubic-bezier(0.2, 0.7, 0.1, 1),
-    opacity 0.7s ease,
-    filter 0.7s ease;
-  will-change: transform, opacity, filter;
+    transform 0.85s cubic-bezier(0.22, 0.7, 0.12, 1),
+    opacity 0.6s ease;
+  will-change: transform, opacity;
 }
 
 .site-footer__grid {
@@ -306,12 +309,12 @@ onBeforeUnmount(() => {
 
 .site-footer.is-visible .site-footer__overlay {
   opacity: 0;
+  transform: scaleY(0);
 }
 
 .site-footer.is-visible .site-footer__content {
-  transform: translate3d(0, 0, 0) scale(1);
+  transform: translate3d(0, 0, 0);
   opacity: 1;
-  filter: blur(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -319,11 +322,11 @@ onBeforeUnmount(() => {
     transition: none;
     transform: none;
     opacity: 1;
-    filter: none;
   }
   .site-footer__overlay {
     transition: none;
     opacity: 0;
+    transform: none;
   }
 }
 
