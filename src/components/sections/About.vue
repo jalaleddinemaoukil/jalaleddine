@@ -5,19 +5,9 @@
         <div class="about__visual">
           <div ref="imageFrame" class="image-frame">
             <div ref="imageReveal" class="image-reveal">
-              <video
-                ref="imageEl"
-                class="about__image"
-                :src="videoReady ? profileImg : undefined"
-                muted
-                loop
-                :autoplay="videoReady"
-                playsinline
-                :preload="videoReady ? 'metadata' : 'none'"
-                aria-hidden="true"
-                role="presentation"
-                tabindex="-1"
-              >
+              <video ref="imageEl" class="about__image" :src="videoReady ? profileImg : undefined" muted loop
+                :autoplay="videoReady" playsinline :preload="videoReady ? 'metadata' : 'none'" aria-hidden="true"
+                role="presentation" tabindex="-1">
                 <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
               </video>
             </div>
@@ -26,31 +16,25 @@
 
         <div class="about__content">
           <RevealText tag="h2" class="about__heading" v-bind="revealProps">
-            I design and engineer web applications that evolve with your business.
-            Clean architecture. Solid foundations. Built to scale.
+            I build websites that don't break when your business grows.
+            Fast, functional, and built to actually make you money.
           </RevealText>
 
           <div class="philosophy">
             <RevealText tag="p" v-bind="revealProps">
-              As a software engineer and web designer, I focus on clean architecture, performance, and usability because
-              great websites should work flawlessly and feel effortless to use. I love web development for its unique
-              ability to turn logic into experience, where code directly shapes how people interact with a brand.
+              Most developers hand you a site and disappear. I stick around.
+              Whether you're launching something new or fixing a mess someone
+              else left behind, I build web applications that work the way you
+              need them to without the tech headaches. Clean code, real results, zero BS.
             </RevealText>
           </div>
 
           <div ref="ctaRef" class="cta-wrapper">
             <span class="mask">
               <span class="reveal">
-                <Button
-                  tag="a"
-                  href="#" :data-mailto="mailtoEncoded"
-                  width="clamp(280px, 100%, 420px)"
-                  height="clamp(56px, 4vw, 72px)"
-                  fontSize="clamp(14px, 1.8vw, 16px)"
-                  paddingX="clamp(32px, 3vw, 48px)"
-                  paddingY="0px"
-                  font-weight="600"
-                >
+                <Button tag="a" href="#" :data-mailto="mailtoEncoded" width="clamp(280px, 100%, 420px)"
+                  height="clamp(56px, 4vw, 72px)" fontSize="clamp(14px, 1.8vw, 16px)" paddingX="clamp(32px, 3vw, 48px)"
+                  paddingY="0px" font-weight="600">
                   Let's Build Something Great
                 </Button>
               </span>
@@ -179,18 +163,18 @@ const buildAnimation = async () => {
     const tl = hasRevealed
       ? null
       : gsap.timeline({
-          scrollTrigger: {
-            trigger: root,
-            scroller: window,
-            start: "top 70%",
-            end: "bottom 20%",
-            once: true,
-            invalidateOnRefresh: true,
-          },
-          onComplete: () => {
-            hasRevealed = true;
-          },
-        });
+        scrollTrigger: {
+          trigger: root,
+          scroller: window,
+          start: "top 70%",
+          end: "bottom 20%",
+          once: true,
+          invalidateOnRefresh: true,
+        },
+        onComplete: () => {
+          hasRevealed = true;
+        },
+      });
 
     if (tl && imageFrame.value && imageReveal.value && imageEl.value) {
       tl.from(
@@ -256,7 +240,7 @@ onMounted(() => {
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
           videoReady.value = true;
-          imageEl.value?.play?.().catch(() => {});
+          imageEl.value?.play?.().catch(() => { });
           scheduleScrollRefresh();
           videoObserver?.disconnect();
           videoObserver = null;
@@ -301,7 +285,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-
 .about {
   position: relative;
   z-index: 10;
@@ -310,7 +293,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.about > .shell {
+.about>.shell {
   padding-left: 30px;
   padding-right: 30px;
   max-width: var(--size-container);
@@ -426,7 +409,7 @@ onBeforeUnmount(() => {
 
 
 @media screen and (max-width: 991px) {
-  .about > .shell {
+  .about>.shell {
     padding-left: var(--gutter);
     padding-right: var(--gutter);
   }
@@ -481,5 +464,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-
-
