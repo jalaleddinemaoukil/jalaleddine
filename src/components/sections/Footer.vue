@@ -38,13 +38,13 @@
                 Explore
               </RevealText>
               <div class="site-footer__link-list">
-                <RouterLink class="site-footer__link" to="/works">
+                <RouterLink class="site-footer__link" to="/works" aria-label="Work">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Work</RevealText>
                 </RouterLink>
-                <RouterLink class="site-footer__link" to="/#services">
+                <RouterLink class="site-footer__link" to="/#services" aria-label="Services">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Services</RevealText>
                 </RouterLink>
-                <RouterLink class="site-footer__link" to="/info">
+                <RouterLink class="site-footer__link" to="/info" aria-label="About">
                   <RevealText tag="span" :scroll="true" splitReveal="words">About</RevealText>
                 </RouterLink>
               </div>
@@ -56,13 +56,13 @@
               </RevealText>
               <div class="site-footer__link-list">
                
-                <a class="site-footer__link" href="https://www.linkedin.com/in/jalal-eddine-maoukil/" target="_blank" rel="noopener noreferrer">
+                <a class="site-footer__link" href="https://www.linkedin.com/in/jalal-eddine-maoukil/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                   <RevealText tag="span" :scroll="true" splitReveal="words">LinkedIn</RevealText>
                 </a>
-                <a class="site-footer__link" href="https://github.com/jalaleddinemaoukil" target="_blank" rel="noopener noreferrer">
+                <a class="site-footer__link" href="https://github.com/jalaleddinemaoukil" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
                   <RevealText tag="span" :scroll="true" splitReveal="words">GitHub</RevealText>
                 </a>
-                 <a class="site-footer__link" href="https://me.muz.li/jalaledn" target="_blank" rel="noopener noreferrer">
+                 <a class="site-footer__link" href="https://me.muz.li/jalaledn" target="_blank" rel="noopener noreferrer" aria-label="Muzli">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Muzli</RevealText>
                 </a>
               </div>
@@ -73,7 +73,7 @@
             <RevealText tag="p" :scroll="true" splitReveal="words">
               © 2026 Jalal Eddine Maoukil. All rights reserved.
             </RevealText>
-            <RouterLink class="site-footer__legal-link" to="/privacy-policy">
+            <RouterLink class="site-footer__legal-link" to="/privacy-policy" aria-label="Privacy Policy">
               <RevealText tag="span" :scroll="true" splitReveal="words">Privacy Policy</RevealText>
             </RouterLink>
           </div>

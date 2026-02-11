@@ -22,6 +22,7 @@
           <img
             data-img
             :src="profileImageSrc"
+            :srcset="profileImageSrcSet"
             sizes="(max-width: 768px) 68vw, 25rem"
             width="800"
             height="800"
@@ -63,7 +64,10 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount } from "vue";
-import profileImage from "../assets/images/profile.webp";
+import profile320 from "../assets/images/profile-320.webp";
+import profile480 from "../assets/images/profile-480.webp";
+import profile640 from "../assets/images/profile-640.webp";
+import profile800 from "../assets/images/profile-800.webp";
 
 const PRELOADER_CONFIG = {
   ENTER_MS: 1200,
@@ -76,7 +80,13 @@ const PRELOADER_CONFIG = {
 };
 
 const CONFIG_JSON = JSON.stringify(PRELOADER_CONFIG);
-const profileImageSrc = typeof profileImage === "string" ? profileImage : profileImage?.src;
+const profileImageSrc = profile640;
+const profileImageSrcSet = [
+  `${profile320} 320w`,
+  `${profile480} 480w`,
+  `${profile640} 640w`,
+  `${profile800} 800w`,
+].join(", ");
 
 onMounted(() => {
   const $ = (sel, root = document) => root.querySelector(sel);

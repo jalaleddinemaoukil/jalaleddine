@@ -93,7 +93,7 @@ const mailtoEncoded =
 
 const props = defineProps({
   brand: { type: String, default: "Jalal Eddine Maoukil" },
-  brandHref: { type: String, default: "/#hero" },
+  brandHref: { type: String, default: "/" },
   blend: { type: Boolean, default: true },
 
   items: {

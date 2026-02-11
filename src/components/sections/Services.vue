@@ -27,8 +27,16 @@
           </div>
 
           <div class="service__media" :ref="(el) => setMediaWrapRef(el, idx)">
-            <img :ref="(el) => setMediaImageRef(el, idx)" class="service__image" :src="service.imageSrc"
-              :alt="service.imageAlt" loading="lazy" decoding="async" />
+            <img
+              :ref="(el) => setMediaImageRef(el, idx)"
+              class="service__image"
+              :src="service.imageSrc"
+              :srcset="service.imageSrcset"
+              :sizes="service.imageSizes"
+              :alt="service.imageAlt"
+              loading="lazy"
+              decoding="async"
+            />
             <div class="service__media-shade" aria-hidden="true"></div>
           </div>
         </div>
@@ -40,9 +48,20 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
 import RevealText from "../base/RevealText.vue";
-const webImage = "/images/web.webp";
-const cloudImage = "/images/cloud.webp";
-const performanceImage = "/images/optimization.webp";
+const buildServiceImage = (name) => ({
+  src: `/images/${name}-720.webp`,
+  srcset: [
+    `/images/${name}-480.webp 480w`,
+    `/images/${name}-720.webp 720w`,
+    `/images/${name}-960.webp 960w`,
+    `/images/${name}.webp 1080w`,
+  ].join(", "),
+  sizes: "(max-width: 991px) 90vw, (max-width: 1280px) 65vw, 52vw",
+});
+
+const webImage = buildServiceImage("web");
+const cloudImage = buildServiceImage("cloud");
+const performanceImage = buildServiceImage("optimization");
 
 const services = [
   {
@@ -51,7 +70,9 @@ const services = [
     subtitle: "Digital products people actually use",
     description:
       "Interfaces that feel intuitive. Backends that handle growth. Design decisions that drive conversions. I build web applications from concept to launch. No handoffs, no miscommunication, just cohesive products that work.",
-    imageSrc: webImage,
+    imageSrc: webImage.src,
+    imageSrcset: webImage.srcset,
+    imageSizes: webImage.sizes,
     imageAlt: "Web Development & Design showcase",
   },
   {
@@ -60,7 +81,9 @@ const services = [
     subtitle: "Infrastructure that scales with you",
     description:
       "Real-time data processing. Serverless architectures. Systems that grow without the growing pains. Your infrastructure should enable your business, not slow it down.",
-    imageSrc: cloudImage,
+    imageSrc: cloudImage.src,
+    imageSrcset: cloudImage.srcset,
+    imageSizes: cloudImage.sizes,
     imageAlt: "Cloud Solutions infrastructure",
   },
   {
@@ -69,7 +92,9 @@ const services = [
     subtitle: "Speed that converts",
     description:
       "Fast load times. Clean code. Better user experience. I turn slow, bloated applications into lean, efficient ones. 30% faster isn't luck it's intentional optimization.",
-    imageSrc: performanceImage,
+    imageSrc: performanceImage.src,
+    imageSrcset: performanceImage.srcset,
+    imageSizes: performanceImage.sizes,
     imageAlt: "Performance & Optimization metrics",
   },
 ];
@@ -110,10 +135,23 @@ const prefersReducedMotion = () =>
     (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4) ||
     (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4));
 
+const stripProhibitedAria = (node) => {
+  if (!node) return;
+  node.removeAttribute("aria-label");
+  node.removeAttribute("aria-labelledby");
+};
+
+const stripSplitAria = () => {
+  document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+    stripProhibitedAria(heading);
+  });
+};
+
 const revealAllSplitHeadings = () => {
   document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
     heading.style.visibility = "visible";
     heading.style.opacity = "1";
+    stripProhibitedAria(heading);
   });
 };
 
@@ -146,6 +184,7 @@ const initMaskTextScrollReveal = () => {
     if (instance && instance.revert) instance.revert();
   });
   splitInstances = [];
+  stripSplitAria();
 
   if (prefersReducedMotion()) {
     revealAllSplitHeadings();
@@ -155,6 +194,7 @@ const initMaskTextScrollReveal = () => {
   document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
     if (!heading || !heading.textContent?.trim()) return;
 
+    stripProhibitedAria(heading);
     gsap.set(heading, { autoAlpha: 1 });
 
     const type = heading.dataset.splitReveal || "lines";
@@ -173,6 +213,7 @@ const initMaskTextScrollReveal = () => {
       wordsClass: "word",
       charsClass: "letter",
       onSplit: function (splitInstance) {
+        stripProhibitedAria(heading);
         const targets = splitInstance[type];
         const config = splitConfig[type];
 
@@ -519,4 +560,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-

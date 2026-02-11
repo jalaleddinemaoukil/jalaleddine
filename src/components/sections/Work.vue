@@ -40,11 +40,6 @@
           :href="item.href"
           :aria-label="item.title ? `View ${item.title} project` : 'View project'"
           @click="handleMediaClick(item.href, $event)"
-          @pointermove="onCursorMove"
-          @pointerenter="onCursorEnter"
-          @pointerleave="onCursorLeave"
-          @focus="onCursorFocus"
-          @blur="onCursorLeave"
         >
           <span class="sr-only">{{ item.title ? `View ${item.title} project` : "View project" }}</span>
           <div class="work__media" :ref="(el) => setMediaRef(el, idx)">
@@ -65,7 +60,6 @@
               <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
             </video>
           </div>
-          <span class="work__cursor" aria-hidden="true">View</span>
         </a>
       </article>
     </div>
@@ -103,13 +97,12 @@ const bgReady = ref([]);
 const videoReady = ref([]);
 let resizeTimer = null;
 let resizeHandler = null;
-let scrollHandler = null;
 let videoObserver = null;
 const PREWARM_COUNT = 1;
 
 const isSanityImage = (url) => typeof url === "string" && url.includes("cdn.sanity.io/images/");
 
-const optimizeSanityImage = (url, width, quality = 60) => {
+const optimizeSanityImage = (url, width, quality = 50) => {
   if (!isSanityImage(url)) return url;
   try {
     const u = new URL(url);
@@ -252,124 +245,6 @@ const buildParallax = () => {
   });
 };
 
-const cursorState = {
-  link: null,
-  cursor: null,
-  rect: null,
-  x: 0,
-  y: 0,
-  tx: 0,
-  ty: 0,
-  visible: false,
-  raf: null,
-};
-let cursorRectDirty = true;
-
-const updateCursorRect = () => {
-  if (!cursorState.link) return;
-  cursorState.rect = cursorState.link.getBoundingClientRect();
-  cursorRectDirty = false;
-};
-
-const setCursorTarget = (clientX, clientY) => {
-  const rect = cursorState.rect;
-  if (!rect) return;
-  const offset = 12;
-  cursorState.tx = clientX - rect.left + offset;
-  cursorState.ty = clientY - rect.top + offset;
-};
-
-const applyCursorStyle = () => {
-  if (!cursorState.cursor) return;
-  const lerp = 0.18;
-  cursorState.x += (cursorState.tx - cursorState.x) * lerp;
-  cursorState.y += (cursorState.ty - cursorState.y) * lerp;
-  const scale = cursorState.visible ? 1 : 0.86;
-  const opacity = cursorState.visible ? 1 : 0;
-  cursorState.cursor.style.opacity = `${opacity}`;
-  cursorState.cursor.style.transform = `translate3d(${cursorState.x}px, ${cursorState.y}px, 0) translate3d(-50%, -50%, 0) scale(${scale})`;
-};
-
-const startCursorLoop = () => {
-  if (cursorState.raf) return;
-  const tick = () => {
-    applyCursorStyle();
-    cursorState.raf = requestAnimationFrame(tick);
-  };
-  cursorState.raf = requestAnimationFrame(tick);
-};
-
-const stopCursorLoop = () => {
-  if (!cursorState.raf) return;
-  cancelAnimationFrame(cursorState.raf);
-  cursorState.raf = null;
-};
-
-const onCursorMove = (event) => {
-  if (prefersReducedMotion() || event.pointerType === "touch") return;
-  if (!cursorState.link) return;
-  if (!cursorState.rect || cursorRectDirty) updateCursorRect();
-  setCursorTarget(event.clientX, event.clientY);
-};
-
-const onCursorEnter = (event) => {
-  if (prefersReducedMotion() || event.pointerType === "touch") return;
-  const target = event.currentTarget;
-  if (!target) return;
-  const cursor = target.querySelector(".work__cursor");
-  if (!cursor) return;
-  cursorState.link = target;
-  cursorState.cursor = cursor;
-  updateCursorRect();
-  cursorRectDirty = false;
-  setCursorTarget(event.clientX, event.clientY);
-  cursorState.x = cursorState.tx;
-  cursorState.y = cursorState.ty;
-  cursorState.visible = true;
-  startCursorLoop();
-  const panel = target.closest(".work__panel");
-  panel?.classList.add("is-hovered");
-};
-
-const onCursorLeave = (event) => {
-  const target = event.currentTarget;
-  if (!target) return;
-  cursorState.visible = false;
-  if (cursorState.cursor) {
-    cursorState.cursor.style.opacity = "0";
-    cursorState.cursor.style.transform = `translate3d(${cursorState.x}px, ${cursorState.y}px, 0) translate3d(-50%, -50%, 0) scale(0.86)`;
-  }
-  cursorState.link = null;
-  cursorState.rect = null;
-  cursorRectDirty = true;
-  cursorState.cursor = null;
-  const panel = target.closest(".work__panel");
-  panel?.classList.remove("is-hovered");
-  stopCursorLoop();
-};
-
-const onCursorFocus = (event) => {
-  if (prefersReducedMotion()) return;
-  const target = event.currentTarget;
-  if (!target) return;
-  const cursor = target.querySelector(".work__cursor");
-  if (!cursor) return;
-  cursorState.link = target;
-  cursorState.cursor = cursor;
-  updateCursorRect();
-  cursorRectDirty = false;
-  const rect = cursorState.rect;
-  if (rect) {
-    setCursorTarget(rect.left + rect.width / 2, rect.top + rect.height / 2);
-    cursorState.x = cursorState.tx;
-    cursorState.y = cursorState.ty;
-  }
-  cursorState.visible = true;
-  startCursorLoop();
-  const panel = target.closest(".work__panel");
-  panel?.classList.add("is-hovered");
-};
-
 const resetMediaState = () => {
   bgLoaded.value = [];
   bgReady.value = [];
@@ -441,18 +316,12 @@ onMounted(() => {
 
   resizeHandler = () => {
     clearTimeout(resizeTimer);
-    cursorRectDirty = true;
     resizeTimer = setTimeout(() => {
       buildParallax();
       ensurePlugins()?.ScrollTrigger?.refresh?.();
     }, 150);
   };
   window.addEventListener("resize", resizeHandler, { passive: true });
-
-  scrollHandler = () => {
-    cursorRectDirty = true;
-  };
-  window.addEventListener("scroll", scrollHandler, { passive: true });
 });
 
 watch(
@@ -469,7 +338,6 @@ watch(
 
 onBeforeUnmount(() => {
   if (resizeHandler) window.removeEventListener("resize", resizeHandler);
-  if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
   videoObserver?.disconnect();
   videoObserver = null;
   clearTimeout(resizeTimer);
@@ -544,9 +412,6 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
-.work__panel.is-hovered .work__bg-img {
-  filter: brightness(0.6) saturate(0.9);
-}
 
 .work__media-link {
   position: relative;
@@ -615,49 +480,6 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-.work__cursor {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 120px;
-  height: 44px;
-  border-radius: 999px;
-  border: 1px solid rgba(237, 237, 237, 0.35);
-  background:
-    linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.65));
-  color: var(--color-white);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  pointer-events: none;
-  transform: translate3d(-50%, -50%, 0) scale(0.86);
-  opacity: 0;
-  box-shadow:
-    0 16px 35px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 1px rgba(237, 237, 237, 0.08);
-  will-change: transform, opacity;
-  z-index: 3;
-}
-
-.work__cursor::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(237, 237, 237, 0.85);
-  box-shadow: 0 0 10px rgba(237, 237, 237, 0.6);
-  display: inline-block;
-}
-
-@media (max-width: 767px) {
-  .work__cursor {
-    display: none;
-  }
-}
 
 @media (max-width: 767px) {
   .work__heading {

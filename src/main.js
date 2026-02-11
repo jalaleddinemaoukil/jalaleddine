@@ -12,10 +12,19 @@ import {
 
 const hydrateInitialState = () => {
   if (typeof window === "undefined") return;
-  if (window.__INITIAL_STATE__) return;
+
+  const raw = window.__INITIAL_STATE__;
+  if (typeof raw === "string" && raw.trim()) return;
+
+  if (raw && typeof raw.textContent === "string" && raw.textContent.trim()) {
+    window.__INITIAL_STATE__ = raw.textContent.trim();
+    return;
+  }
+
   const stateEl = document.getElementById("__INITIAL_STATE__");
-  if (!stateEl?.textContent) return;
-  window.__INITIAL_STATE__ = stateEl.textContent.trim();
+  if (stateEl?.textContent?.trim()) {
+    window.__INITIAL_STATE__ = stateEl.textContent.trim();
+  }
 };
 
 hydrateInitialState();
