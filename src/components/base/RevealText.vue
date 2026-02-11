@@ -35,6 +35,7 @@ let preloaderTimeout = null;
 let preloaderHandler = null;
 let pendingPlay = false;
 let buildInProgress = false;
+let visibilityObserver = null;
 
 const stripProhibitedAria = () => {
   if (!el.value) return;
@@ -90,6 +91,8 @@ const cleanup = () => {
   preloaderObserver = null;
   if (preloaderTimeout) clearTimeout(preloaderTimeout);
   preloaderTimeout = null;
+  if (visibilityObserver) visibilityObserver.disconnect();
+  visibilityObserver = null;
 };
 
 const build = async (options = {}) => {
@@ -231,7 +234,7 @@ const isPreloaderGone = () => {
 
 const playReveal = () => {
   if (props.scroll) {
-    void build();
+    requestBuild();
     return;
   }
   if (tween) {
@@ -241,6 +244,29 @@ const playReveal = () => {
   }
   pendingPlay = true;
   if (!buildInProgress) void build();
+};
+
+const requestBuild = () => {
+  if (!props.scroll) {
+    void build();
+    return;
+  }
+  if (typeof window === "undefined" || !("IntersectionObserver" in window) || !el.value) {
+    void build();
+    return;
+  }
+  if (visibilityObserver) return;
+  visibilityObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        visibilityObserver?.disconnect();
+        visibilityObserver = null;
+        void build();
+      }
+    },
+    { rootMargin: "240px 0px", threshold: 0.01 }
+  );
+  visibilityObserver.observe(el.value);
 };
 
 const waitForPreloaderExit = () => {
@@ -294,20 +320,20 @@ onMounted(() => {
       // Fallback: ensure we don't miss the animation even if preloader is removed silently
       preloaderTimeout = setTimeout(() => playReveal(), 1800);
     } else {
-      void build();
+      requestBuild();
     }
   } else {
-    void build();
+    requestBuild();
   }
   window.addEventListener("resize", onResize, { passive: true });
   if (!props.waitForPreloader || props.scroll) {
-    window.addEventListener("load", build, { once: true });
+    window.addEventListener("load", requestBuild, { once: true });
   }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
-  window.removeEventListener("load", build);
+  window.removeEventListener("load", requestBuild);
   if (preloaderHandler) {
     window.removeEventListener("preloaderExit", preloaderHandler);
     window.removeEventListener("preloaderComplete", preloaderHandler);

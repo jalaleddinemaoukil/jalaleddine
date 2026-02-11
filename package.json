@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-sitemap.mjs && vite-ssg build && node scripts/ssg-inline-state.mjs",
+    "build": "node scripts/generate-sitemap.mjs && vite-ssg build && node scripts/ssg-inline-state.mjs && node scripts/inline-css.mjs",
     "preview": "vite preview",
     "perf:audit": "npx @lhci/cli@0.13.0 autorun --config=./lighthouserc.json"
   },

@@ -106,6 +106,7 @@ const mediaImages = ref([]);
 let resizeTimer = null;
 let resizeHandler = null;
 let splitInstances = [];
+let splitObserver = null;
 
 const setCardRef = (el, idx) => {
   if (!el) return;
@@ -184,6 +185,13 @@ const initMaskTextScrollReveal = () => {
     if (instance && instance.revert) instance.revert();
   });
   splitInstances = [];
+  if (splitObserver) {
+    splitObserver.disconnect();
+    splitObserver = null;
+  }
+  document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+    heading.removeAttribute("data-split-ready");
+  });
   stripSplitAria();
 
   if (prefersReducedMotion()) {
@@ -191,8 +199,10 @@ const initMaskTextScrollReveal = () => {
     return;
   }
 
-  document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+  const splitHeading = (heading) => {
     if (!heading || !heading.textContent?.trim()) return;
+    if (heading.dataset.splitReady === "true") return;
+    heading.dataset.splitReady = "true";
 
     stripProhibitedAria(heading);
     gsap.set(heading, { autoAlpha: 1 });
@@ -234,7 +244,27 @@ const initMaskTextScrollReveal = () => {
     });
 
     splitInstances.push(instance);
-  });
+  };
+
+  const headings = Array.from(document.querySelectorAll('[data-split="heading"]'));
+  if (!("IntersectionObserver" in window)) {
+    headings.forEach(splitHeading);
+    return;
+  }
+
+  splitObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          splitHeading(entry.target);
+          splitObserver?.unobserve(entry.target);
+        }
+      });
+    },
+    { rootMargin: "200px 0px", threshold: 0.05 }
+  );
+
+  headings.forEach((heading) => splitObserver.observe(heading));
 };
 
 const buildParallaxAnimations = () => {
@@ -351,6 +381,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (resizeHandler) window.removeEventListener("resize", resizeHandler);
   clearTimeout(resizeTimer);
+  if (splitObserver) {
+    splitObserver.disconnect();
+    splitObserver = null;
+  }
 
   // Clean up SplitText instances
   splitInstances.forEach((instance) => {
