@@ -42,13 +42,13 @@
 
     <div class="text-stack" data-text-stack>
       <div class="name" data-name>
-        <span data-name-text data-split="heading" data-split-reveal="words">
+        <span data-name-text>
           JALAL EDDINE
         </span>
       </div>
 
       <div class="copy" data-copy>
-        <p data-copy-text data-split="heading" data-split-reveal="words">
+        <p data-copy-text>
           I transform complex technical ideas into modern cloud solutions and
           high-performance web applications that solve real-world problems.
         </p>
@@ -519,7 +519,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-  .preloader [data-split="heading"] {
+  .preloader [data-name-text],
+  .preloader [data-copy-text] {
     visibility: visible;
   }
 

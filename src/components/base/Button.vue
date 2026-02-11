@@ -34,12 +34,10 @@ export default {
     ariaLabel: String,
     customClass: [String, Array, Object],
 
-    /* --- animation props --- */
     staggerDelay: { type: Number, default: 0.01 },
     animationDuration: { type: Number, default: 0.6 },
     animationEasing: { type: String, default: "cubic-bezier(0.625, 0.05, 0, 1)" },
 
-    /* --- new sizing props --- */
     width: { type: [String, Number], default: null },     // e.g. 220, "14rem", "100%"
     height: { type: [String, Number], default: null },    // e.g. 48, "3rem"
     paddingX: { type: [String, Number], default: "2em" }, // e.g. 24, "1.5rem"
@@ -49,7 +47,6 @@ export default {
     fontWeight: { type: [String, Number], default: null },// e.g. 600
     letterSpacing: { type: [String, Number], default: null }, // e.g. "0.04em"
 
-    // controls the hover “lift” distance (ties to line-height)
     lift: { type: [String, Number], default: "1.3em" } // match your original
   },
   data() {

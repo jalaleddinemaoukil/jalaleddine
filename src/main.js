@@ -3,7 +3,6 @@ import { ViteSSG } from "vite-ssg";
 import App from "@/App.vue";
 import { routes } from "@/router/routes.js";
 import { initLenis } from "@/scripts/lenis-init.js";
-import { initHoverSfx } from "@/scripts/hover-sfx.js";
 import { fetchHomeWorkItems, fetchWorksItems } from "@/lib/sanity.js";
 
 const scrollBehavior = (to, from, savedPosition) => {
@@ -51,7 +50,6 @@ export const createApp = ViteSSG(
 
     if (isClient) {
       initLenis();
-      initHoverSfx();
 
       router.afterEach(() => {
         requestAnimationFrame(() => {
