@@ -23,7 +23,7 @@
             data-img
             :src="profileImageSrc"
             :srcset="profileImageSrcSet"
-            sizes="(max-width: 768px) 68vw, 25rem"
+            sizes="(max-width: 768px) 64vw, 25rem"
             width="800"
             height="800"
             loading="eager"
@@ -630,7 +630,7 @@ onBeforeUnmount(() => {
   }
 
   .frame {
-    width: min(25rem, 68vw);
+    width: min(25rem, 64vw);
     aspect-ratio: 1 / 1;
     position: relative;
     transform: translateZ(0);
