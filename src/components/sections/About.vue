@@ -1,17 +1,47 @@
 <template>
-  <section id="about" ref="aboutRef" class="about section">
+  <section
+    id="about"
+    ref="aboutRef"
+    class="about section"
+    @pointerleave="handleSectionPointerLeave"
+  >
     <div class="shell">
       <div class="about__grid">
-        <div class="about__visual">
-          <div ref="imageFrame" class="image-frame">
-            <div ref="imageReveal" class="image-reveal">
-              <video ref="imageEl" class="about__image" :src="videoReady ? profileImg : undefined" muted loop
-                :autoplay="videoReady" playsinline :preload="videoReady ? 'auto' : 'none'" aria-hidden="true"
-                role="presentation" tabindex="-1">
-                <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
-              </video>
+        <div class="about__visual" :class="{ 'is-media-hovered': isMediaHovered }">
+          <a
+            class="about__visual-link"
+            href="/info"
+            aria-label="Learn more about me"
+            @click="handleVisualClick"
+            @pointerenter="handleMediaPointerEnter($event)"
+            @pointermove="handleMediaPointerMove($event)"
+            @pointerleave="handleMediaPointerLeave"
+            @pointercancel="handleMediaPointerLeave"
+            @focus="handleMediaFocus"
+            @blur="handleMediaBlur"
+          >
+            <div ref="imageFrame" class="image-frame">
+              <div ref="imageReveal" class="image-reveal">
+                <video
+                  ref="imageEl"
+                  class="about__image"
+                  :src="videoReady ? profileImg : undefined"
+                  muted
+                  loop
+                  :autoplay="videoReady"
+                  playsinline
+                  :preload="videoReady ? 'auto' : 'none'"
+                  aria-hidden="true"
+                  role="presentation"
+                  tabindex="-1"
+                >
+                  <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
+                </video>
+                <div class="about__image-overlay" aria-hidden="true"></div>
+              </div>
             </div>
-          </div>
+            <span class="sr-only">Learn more about me</span>
+          </a>
         </div>
 
         <div class="about__content">
@@ -43,14 +73,32 @@
         </div>
       </div>
     </div>
+    <div
+      ref="cursorRef"
+      class="about__cursor"
+      :class="{ 'is-visible': cursorVisible }"
+      aria-hidden="true"
+    >
+      <span class="about__cursor-chip">
+        <span class="about__cursor-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 7h10v10" />
+            <path d="M7 17 17 7" />
+          </svg>
+        </span>
+      </span>
+    </div>
   </section>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import Button from "../base/Button.vue";
 import RevealText from "../base/RevealText.vue";
 import profileVideo from "../../assets/videos/footage.mp4";
+
+const router = useRouter();
 
 const mailtoEncoded =
   "&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#97;&#108;&#97;&#108;&#101;&#100;&#100;&#105;&#110;&#101;&#109;&#97;&#111;&#117;&#107;&#105;&#108;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;";
@@ -79,11 +127,21 @@ const imageReveal = ref(null);
 const imageEl = ref(null);
 const ctaRef = ref(null);
 const videoReady = ref(false);
+const cursorRef = ref(null);
+const isMediaHovered = ref(false);
+const cursorVisible = ref(false);
+const cursorEnabled = ref(false);
 
 let ctx = null;
 let resizeTimer = null;
 let videoObserver = null;
 let hasRevealed = false;
+let cursorRaf = 0;
+let cursorRunning = false;
+let cursorHalf = 0;
+const CURSOR_EASE = 0.16;
+const cursorTarget = { x: -200, y: -200 };
+const cursorCurrent = { x: -200, y: -200 };
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -108,6 +166,105 @@ const scheduleScrollRefresh = () => {
     window.__lenis?.resize?.();
     window.dispatchEvent(new Event("content:loaded"));
   });
+};
+
+const applyCursorTransform = () => {
+  const el = cursorRef.value;
+  if (!el) return;
+  el.style.transform = `translate3d(${cursorCurrent.x}px, ${cursorCurrent.y}px, 0)`;
+};
+
+const stopCursorLoop = () => {
+  if (!cursorRaf) return;
+  cancelAnimationFrame(cursorRaf);
+  cursorRaf = 0;
+  cursorRunning = false;
+};
+
+const runCursor = () => {
+  const dx = cursorTarget.x - cursorCurrent.x;
+  const dy = cursorTarget.y - cursorCurrent.y;
+  cursorCurrent.x += dx * CURSOR_EASE;
+  cursorCurrent.y += dy * CURSOR_EASE;
+  applyCursorTransform();
+
+  const settled = Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1;
+  if (cursorVisible.value || !settled) {
+    cursorRaf = requestAnimationFrame(runCursor);
+  } else {
+    stopCursorLoop();
+  }
+};
+
+const ensureCursorLoop = () => {
+  if (cursorRunning) return;
+  cursorRunning = true;
+  cursorRaf = requestAnimationFrame(runCursor);
+};
+
+const updateCursorMetrics = () => {
+  const el = cursorRef.value;
+  cursorHalf = el ? el.getBoundingClientRect().width / 2 : 0;
+};
+
+const updateCursorCapability = () => {
+  if (typeof window === "undefined") return;
+  const finePointer = window.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches;
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  cursorEnabled.value = !!finePointer && !reducedMotion;
+  if (!cursorEnabled.value) {
+    cursorVisible.value = false;
+    stopCursorLoop();
+  }
+};
+
+const setCursorTargetFromEvent = (event) => {
+  cursorTarget.x = event.clientX - cursorHalf;
+  cursorTarget.y = event.clientY - cursorHalf;
+};
+
+const handleVisualClick = (event) => {
+  event?.preventDefault?.();
+  router.push("/info");
+};
+
+const handleMediaPointerEnter = (event) => {
+  isMediaHovered.value = true;
+  if (!cursorEnabled.value) return;
+  setCursorTargetFromEvent(event);
+  cursorCurrent.x = cursorTarget.x;
+  cursorCurrent.y = cursorTarget.y;
+  applyCursorTransform();
+  cursorVisible.value = true;
+};
+
+const handleMediaPointerMove = (event) => {
+  isMediaHovered.value = true;
+  if (!cursorEnabled.value) return;
+  setCursorTargetFromEvent(event);
+  ensureCursorLoop();
+};
+
+const handleMediaPointerLeave = () => {
+  isMediaHovered.value = false;
+  if (!cursorEnabled.value) return;
+  cursorVisible.value = false;
+  ensureCursorLoop();
+};
+
+const handleMediaFocus = () => {
+  isMediaHovered.value = true;
+};
+
+const handleMediaBlur = () => {
+  isMediaHovered.value = false;
+};
+
+const handleSectionPointerLeave = () => {
+  isMediaHovered.value = false;
+  if (!cursorEnabled.value) return;
+  cursorVisible.value = false;
+  ensureCursorLoop();
 };
 
 const warmVideo = async () => {
@@ -255,6 +412,8 @@ const buildAnimation = async () => {
 const onResize = () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
+    updateCursorCapability();
+    updateCursorMetrics();
     void buildAnimation();
     const st = ensurePlugins()?.ScrollTrigger;
     st?.refresh?.();
@@ -262,6 +421,11 @@ const onResize = () => {
 };
 
 onMounted(() => {
+  updateCursorCapability();
+  nextTick(() => {
+    updateCursorMetrics();
+    applyCursorTransform();
+  });
   scheduleWarmVideo();
 
   if (typeof window !== "undefined" && "IntersectionObserver" in window) {
@@ -294,6 +458,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
   clearTimeout(resizeTimer);
+  stopCursorLoop();
 
   videoObserver?.disconnect();
   videoObserver = null;
@@ -316,6 +481,63 @@ onBeforeUnmount(() => {
   background: var(--color-white);
   color: var(--color-ink);
   overflow: hidden;
+}
+
+.about__cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  pointer-events: none;
+  transform: translate3d(-200px, -200px, 0);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  will-change: transform, opacity;
+}
+
+.about__cursor.is-visible {
+  opacity: 1;
+}
+
+.about__cursor-chip {
+  width: clamp(2rem, 5vw, 3.1rem);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  border-radius: 0.3rem;
+  border: 0.8px solid rgba(237, 237, 237, 0.15);
+  background: rgba(5, 5, 5, 0.78);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  transform: scale(0.9);
+  transition: transform 0.22s ease;
+}
+
+.about__cursor.is-visible .about__cursor-chip {
+  transform: scale(1);
+}
+
+.about__cursor-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.about__cursor-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.about__cursor-icon path {
+  stroke: var(--color-white);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.about__cursor.is-visible .about__cursor-icon {
+  opacity: 1;
 }
 
 .about>.shell {
@@ -363,6 +585,15 @@ onBeforeUnmount(() => {
   align-self: stretch;
 }
 
+.about__visual-link {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
 .image-frame {
   position: sticky;
   top: clamp(80px, 12vh, 120px);
@@ -394,6 +625,20 @@ onBeforeUnmount(() => {
   will-change: transform;
   backface-visibility: hidden;
   transform-origin: center;
+}
+
+.about__image-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.34);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s ease;
+}
+
+.about__visual.is-media-hovered .about__image-overlay {
+  opacity: 1;
 }
 
 
@@ -480,6 +725,24 @@ onBeforeUnmount(() => {
     font-size: clamp(1rem, 1.8vw, 1.0625rem);
     line-height: 1.7;
   }
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .about__cursor {
+    display: none;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 

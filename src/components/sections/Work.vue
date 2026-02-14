@@ -1,5 +1,5 @@
 <template>
-  <section id="work" class="work section">
+  <section id="work" class="work section" @pointerleave="handleSectionPointerLeave">
     <div class="shell">
       <RevealText tag="h2" :scroll="true" class="work__heading">
         Featured Work
@@ -11,6 +11,7 @@
         v-for="(item, idx) in items"
         :key="item._id || item.src || item.title"
         class="work__panel"
+        :class="{ 'is-media-hovered': hoveredPanelIndex === idx }"
         :data-index="idx"
         :ref="(el) => setPanelRef(el, idx)"
       >
@@ -25,14 +26,14 @@
             :data-loaded="bgLoaded[idx] || false"
             width="1920"
             height="1080"
-            loading="lazy"
-            fetchpriority="low"
+            :loading="idx < PREWARM_BG_COUNT ? 'eager' : 'lazy'"
+            :fetchpriority="idx === 0 ? 'high' : idx < PREWARM_BG_COUNT ? 'auto' : 'low'"
             decoding="async"
           />
+          <div class="work__bg-overlay" aria-hidden="true"></div>
         </div>
         <div class="work__meta work__meta--left">{{ item.title }}</div>
         <div class="work__meta work__meta--right">
-          <span class="work__meta-mark">-&gt;</span>
           <span class="work__meta-copy">{{ item.description }}</span>
         </div>
         <a
@@ -40,6 +41,12 @@
           :href="item.href"
           :aria-label="item.title ? `View ${item.title} project` : 'View project'"
           @click="handleMediaClick(item.href, $event)"
+          @pointerenter="handleMediaPointerEnter(idx, $event)"
+          @pointermove="handleMediaPointerMove(idx, $event)"
+          @pointerleave="handleMediaPointerLeave(idx)"
+          @pointercancel="handleMediaPointerLeave(idx)"
+          @focus="handleMediaFocus(idx)"
+          @blur="handleMediaBlur(idx)"
         >
           <span class="sr-only">{{ item.title ? `View ${item.title} project` : "View project" }}</span>
           <div class="work__media" :ref="(el) => setMediaRef(el, idx)">
@@ -47,6 +54,7 @@
               :ref="(el) => setImageRef(el, idx)"
               class="work__video"
               :src="videoReady[idx] ? item.src : undefined"
+              :poster="bgReady[idx] ? getBgSrc(item, 960) : undefined"
               :aria-label="item.alt || item.title"
               :autoplay="videoReady[idx]"
               loop
@@ -62,6 +70,21 @@
           </div>
         </a>
       </article>
+    </div>
+    <div
+      ref="cursorRef"
+      class="work__cursor"
+      :class="{ 'is-visible': cursorVisible }"
+      aria-hidden="true"
+    >
+      <span class="work__cursor-chip">
+        <span class="work__cursor-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 7h10v10" />
+            <path d="M7 17 17 7" />
+          </svg>
+        </span>
+      </span>
     </div>
   </section>
 </template>
@@ -95,10 +118,22 @@ const bgImages = ref([]);
 const bgLoaded = ref([]);
 const bgReady = ref([]);
 const videoReady = ref([]);
+const cursorRef = ref(null);
+const hoveredPanelIndex = ref(-1);
+const cursorVisible = ref(false);
+const cursorEnabled = ref(false);
 let resizeTimer = null;
 let resizeHandler = null;
+let bgObserver = null;
 let videoObserver = null;
-const PREWARM_COUNT = 1;
+let cursorRaf = 0;
+let cursorRunning = false;
+let cursorHalf = 0;
+const PREWARM_BG_COUNT = 2;
+const PREWARM_VIDEO_COUNT = 0;
+const CURSOR_EASE = 0.16;
+const cursorTarget = { x: -200, y: -200 };
+const cursorCurrent = { x: -200, y: -200 };
 
 const isSanityImage = (url) => typeof url === "string" && url.includes("cdn.sanity.io/images/");
 
@@ -145,7 +180,6 @@ const setBgRef = (el, idx) => {
   if (!el) return;
   bgImages.value[idx] = el;
 
-  // Mark as loaded when image loads
   if (el && !bgLoaded.value[idx]) {
     el.addEventListener(
       "load",
@@ -156,6 +190,100 @@ const setBgRef = (el, idx) => {
       { once: true }
     );
   }
+};
+
+const applyCursorTransform = () => {
+  const el = cursorRef.value;
+  if (!el) return;
+  el.style.transform = `translate3d(${cursorCurrent.x}px, ${cursorCurrent.y}px, 0)`;
+};
+
+const stopCursorLoop = () => {
+  if (!cursorRaf) return;
+  cancelAnimationFrame(cursorRaf);
+  cursorRaf = 0;
+  cursorRunning = false;
+};
+
+const runCursor = () => {
+  const dx = cursorTarget.x - cursorCurrent.x;
+  const dy = cursorTarget.y - cursorCurrent.y;
+  cursorCurrent.x += dx * CURSOR_EASE;
+  cursorCurrent.y += dy * CURSOR_EASE;
+  applyCursorTransform();
+
+  const settled = Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1;
+  if (cursorVisible.value || !settled) {
+    cursorRaf = requestAnimationFrame(runCursor);
+  } else {
+    stopCursorLoop();
+  }
+};
+
+const ensureCursorLoop = () => {
+  if (cursorRunning) return;
+  cursorRunning = true;
+  cursorRaf = requestAnimationFrame(runCursor);
+};
+
+const updateCursorMetrics = () => {
+  const el = cursorRef.value;
+  cursorHalf = el ? el.getBoundingClientRect().width / 2 : 0;
+};
+
+const updateCursorCapability = () => {
+  if (typeof window === "undefined") return;
+  const finePointer = window.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches;
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  cursorEnabled.value = !!finePointer && !reducedMotion;
+  if (!cursorEnabled.value) {
+    cursorVisible.value = false;
+    stopCursorLoop();
+  }
+};
+
+const setCursorTargetFromEvent = (event) => {
+  cursorTarget.x = event.clientX - cursorHalf;
+  cursorTarget.y = event.clientY - cursorHalf;
+};
+
+const handleMediaPointerEnter = (idx, event) => {
+  hoveredPanelIndex.value = idx;
+  if (!cursorEnabled.value) return;
+  setCursorTargetFromEvent(event);
+  cursorCurrent.x = cursorTarget.x;
+  cursorCurrent.y = cursorTarget.y;
+  applyCursorTransform();
+  cursorVisible.value = true;
+};
+
+const handleMediaPointerMove = (idx, event) => {
+  hoveredPanelIndex.value = idx;
+  if (!cursorEnabled.value) return;
+  setCursorTargetFromEvent(event);
+  ensureCursorLoop();
+};
+
+const handleMediaPointerLeave = (idx) => {
+  if (hoveredPanelIndex.value === idx) hoveredPanelIndex.value = -1;
+  if (!cursorEnabled.value) return;
+  cursorVisible.value = false;
+  ensureCursorLoop();
+};
+
+const handleMediaFocus = (idx) => {
+  hoveredPanelIndex.value = idx;
+};
+
+const handleMediaBlur = (idx) => {
+  if (hoveredPanelIndex.value === idx) hoveredPanelIndex.value = -1;
+};
+
+const handleSectionPointerLeave = () => {
+  hoveredPanelIndex.value = -1;
+  if (!cursorEnabled.value) return;
+  cursorVisible.value = false;
+  ensureCursorLoop();
 };
 
 const scheduleScrollRefresh = () => {
@@ -200,13 +328,12 @@ const buildParallax = () => {
     const bg = bgImages.value[idx];
     const media = medias.value[idx];
     
-    // Strict existence checks
     if (!panel || !bg || !media) {
       console.warn(`Work panel ${idx}: missing elements`, { panel: !!panel, bg: !!bg, media: !!media });
       return;
     }
 
-    const amount = Math.round(window.innerHeight * 0.08);
+    const amount = Math.round(window.innerHeight * 0.3);
     
     gsap.fromTo(
       bg,
@@ -259,13 +386,16 @@ const resetRefs = () => {
 };
 
 const primeMediaState = () => {
-  const count = Math.min(PREWARM_COUNT, items.value.length);
-  bgReady.value = items.value.map((_, idx) => idx < count);
-  videoReady.value = items.value.map(() => false);
+  const bgCount = Math.min(PREWARM_BG_COUNT, items.value.length);
+  const videoCount = Math.min(PREWARM_VIDEO_COUNT, items.value.length);
+  bgReady.value = items.value.map((_, idx) => idx < bgCount);
+  videoReady.value = items.value.map((_, idx) => idx < videoCount);
 };
 
 const initObservers = () => {
   if (typeof window === "undefined") return;
+  bgObserver?.disconnect();
+  bgObserver = null;
   videoObserver?.disconnect();
   videoObserver = null;
 
@@ -278,27 +408,45 @@ const initObservers = () => {
     return;
   }
 
-    videoObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const idx = Number(entry.target?.dataset?.index ?? -1);
-          if (idx < 0) return;
-          const video = images.value[idx];
-          if (entry.isIntersecting) {
-            bgReady.value[idx] = true;
+  bgObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const idx = Number(entry.target?.dataset?.index ?? -1);
+        if (idx < 0 || !entry.isIntersecting) return;
+        if (!bgReady.value[idx]) {
+          bgReady.value[idx] = true;
+          scheduleScrollRefresh();
+        }
+        bgObserver?.unobserve(entry.target);
+      });
+    },
+    { rootMargin: "1200px 0px", threshold: 0 }
+  );
+
+  videoObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const idx = Number(entry.target?.dataset?.index ?? -1);
+        if (idx < 0) return;
+        const video = images.value[idx];
+        if (entry.isIntersecting) {
+          if (!videoReady.value[idx]) {
             videoReady.value[idx] = true;
-            video?.play?.().catch(() => {});
             scheduleScrollRefresh();
-          } else {
-            video?.pause?.();
           }
-        });
-      },
-      { rootMargin: "240px 0px", threshold: 0.2 }
-    );
+          video?.play?.().catch(() => {});
+        } else {
+          video?.pause?.();
+        }
+      });
+    },
+    { rootMargin: "500px 0px", threshold: 0.15 }
+  );
 
   panels.value.forEach((panel) => {
-    if (panel) videoObserver.observe(panel);
+    if (!panel) return;
+    bgObserver?.observe(panel);
+    videoObserver?.observe(panel);
   });
 };
 
@@ -311,12 +459,19 @@ const refreshLayout = () => {
 };
 
 onMounted(() => {
+  updateCursorCapability();
   initObservers();
   refreshLayout();
+  nextTick(() => {
+    updateCursorMetrics();
+    applyCursorTransform();
+  });
 
   resizeHandler = () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
+      updateCursorCapability();
+      updateCursorMetrics();
       buildParallax();
       ensurePlugins()?.ScrollTrigger?.refresh?.();
     }, 150);
@@ -338,6 +493,9 @@ watch(
 
 onBeforeUnmount(() => {
   if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+  stopCursorLoop();
+  bgObserver?.disconnect();
+  bgObserver = null;
   videoObserver?.disconnect();
   videoObserver = null;
   clearTimeout(resizeTimer);
@@ -357,6 +515,63 @@ onBeforeUnmount(() => {
   padding-block: clamp(4rem, 8vw, 8rem);
 }
 
+.work__cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  pointer-events: none;
+  transform: translate3d(-200px, -200px, 0);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  will-change: transform, opacity;
+}
+
+.work__cursor.is-visible {
+  opacity: 1;
+}
+
+.work__cursor-chip {
+  width: clamp(2rem, 4.8vw, 3rem);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  border-radius: 0.3rem;
+  border: 0.8px solid rgba(237, 237, 237, 0.15);
+  background: rgba(5, 5, 5, 0.78);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  transform: scale(0.9);
+  transition: transform 0.22s ease;
+}
+
+.work__cursor.is-visible .work__cursor-chip {
+  transform: scale(1);
+}
+
+.work__cursor-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.work__cursor-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.work__cursor-icon path {
+  stroke: var(--color-white);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.work__cursor.is-visible .work__cursor-icon {
+  opacity: 1;
+}
+
 .work__heading {
   font-size: var(--text-4xl);
   line-height: var(--lh-tight);
@@ -372,8 +587,7 @@ onBeforeUnmount(() => {
 }
 
 .work__panel {
-  height: 120vh;
-  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: calc(var(--vh, 1vh) * 120);
   width: 100%;
   position: relative;
   overflow: hidden;
@@ -393,6 +607,20 @@ onBeforeUnmount(() => {
   z-index: 0;
   overflow: hidden;
   background: linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(10, 10, 15, 0.98));
+}
+
+.work__bg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s ease;
+}
+
+.work__panel.is-media-hovered .work__bg-overlay {
+  opacity: 1;
 }
 
 .work__bg-img {
@@ -427,12 +655,13 @@ onBeforeUnmount(() => {
   position: absolute;
   z-index: 2;
   color: var(--color-white);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  letter-spacing: var(--tracking-label);
-  background: rgba(0, 0, 0, 0.6);
-  padding: 0.45rem 0.7rem;
-  border-radius: 0.2rem;
+  font-size: clamp(0.68rem, 0.86vw, 0.82rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.62);
 }
 
 .work__meta--left {
@@ -443,20 +672,17 @@ onBeforeUnmount(() => {
 .work__meta--right {
   top: clamp(1.5rem, 4vw, 2.5rem);
   right: clamp(1.5rem, 4vw, 3rem);
-  max-width: min(36vw, 360px);
+  max-width: min(32vw, 320px);
   display: flex;
-  gap: 0.5rem;
-  line-height: var(--lh-base);
-  font-size: var(--text-sm);
+  gap: 0.35rem;
+  line-height: 1.35;
 }
 
 .work__meta-mark {
   flex: 0 0 auto;
 }
 
-.work__meta-copy {
-  flex: 1 1 auto;
-}
+.work__meta-copy { flex: 1 1 auto; }
 
 .work__media {
   position: relative;
@@ -479,7 +705,6 @@ onBeforeUnmount(() => {
   transform: translate3d(0, 0, 0);
   will-change: transform;
 }
-
 
 @media (max-width: 767px) {
   .work__heading {
@@ -513,8 +738,10 @@ onBeforeUnmount(() => {
     position: relative;
     width: min(90vw, 560px);
     align-self: center;
-    font-size: clamp(0.75rem, 2.6vw, 0.9rem);
+    font-size: clamp(0.64rem, 2.2vw, 0.78rem);
     padding: 0.4rem 0.6rem;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 0.2rem;
     margin-inline: auto;
     text-align: center;
   }
@@ -547,6 +774,20 @@ onBeforeUnmount(() => {
   }
 }
 
+@media (hover: none), (pointer: coarse) {
+  .work__meta {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.2rem;
+  }
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .work__cursor {
+    display: none;
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -559,5 +800,4 @@ onBeforeUnmount(() => {
   border: 0;
 }
 </style>
-
 

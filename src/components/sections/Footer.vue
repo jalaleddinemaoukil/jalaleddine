@@ -1,5 +1,10 @@
 <template>
-  <footer ref="footerRef" id="footer" class="site-footer" :class="{ 'is-visible': isVisible }">
+  <footer
+    ref="footerRef"
+    id="footer"
+    class="site-footer"
+    :class="[`site-footer--${props.variant}`, { 'is-visible': isVisible }]"
+  >
     <div class="site-footer__overlay" aria-hidden="true"></div>
     <div class="shell site-footer__content">
       <div class="site-footer__grid">
@@ -89,6 +94,14 @@ import { onMounted, onBeforeUnmount, ref } from "vue";
 import RevealText from "../base/RevealText.vue";
 import Button from "../base/Button.vue";
 
+const props = defineProps({
+  variant: {
+    type: String,
+    default: "light",
+    validator: (value) => ["light", "dark"].includes(value),
+  },
+});
+
 const footerRef = ref(null);
 const isVisible = ref(false);
 let footerObserver = null;
@@ -139,6 +152,11 @@ onBeforeUnmount(() => {
   isolation: isolate;
 }
 
+.site-footer.site-footer--dark {
+  background-color: var(--color-bg);
+  color: var(--color-white);
+}
+
 .site-footer__overlay {
   position: absolute;
   inset: 0;
@@ -151,6 +169,10 @@ onBeforeUnmount(() => {
     opacity 0.6s ease;
   will-change: transform, opacity;
   z-index: 1;
+}
+
+.site-footer.site-footer--dark .site-footer__overlay {
+  background: var(--color-bg);
 }
 
 .site-footer__content {
@@ -290,6 +312,10 @@ onBeforeUnmount(() => {
   outline-offset: 3px;
 }
 
+.site-footer.site-footer--dark .site-footer__link:focus-visible {
+  outline: 2px solid rgba(237, 237, 237, 0.85);
+}
+
 .site-footer__legal {
   display: flex;
   flex-direction: column;
@@ -334,6 +360,10 @@ onBeforeUnmount(() => {
   outline-offset: 3px;
 }
 
+.site-footer.site-footer--dark .site-footer__legal-link:focus-visible {
+  outline: 2px solid rgba(237, 237, 237, 0.85);
+}
+
 .site-footer :deep(.line),
 .site-footer :deep(.word) {
   display: inline-block;
@@ -343,6 +373,11 @@ onBeforeUnmount(() => {
 .site-footer :deep(.btn-animate-chars) {
   --color-cta-bg: var(--color-bg);
   --color-ink: var(--color-white);
+}
+
+.site-footer.site-footer--dark :deep(.btn-animate-chars) {
+  --color-cta-bg: var(--color-white);
+  --color-ink: var(--color-bg);
 }
 
 .site-footer :deep(.line) {
