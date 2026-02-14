@@ -1194,7 +1194,7 @@ onBeforeUnmount(() => {
   }
 }
 
-/* User-requested light reset: white background, black text, visible hero heading */
+/* Final layout guard: keep hero visible and footer in normal flow on Info page */
 .info-page {
   isolation: isolate;
   background: var(--color-white) !important;
@@ -1208,26 +1208,19 @@ onBeforeUnmount(() => {
   display: none !important;
 }
 
-.info-page > * {
-  position: relative;
-  z-index: auto;
-}
-
 .info-mobile-chrome {
   display: none !important;
 }
 
 .info-hero {
-  position: sticky !important;
-  top: 0 !important;
-  height: 100svh;
-  min-height: 100svh;
-  height: 100dvh;
-  min-height: 100dvh;
+  position: relative !important;
+  top: auto !important;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  height: 100dvh;
+  min-height: 100dvh;
   background: var(--color-white) !important;
   border-bottom: 1px solid rgba(5, 5, 5, 0.1);
 }
@@ -1235,6 +1228,7 @@ onBeforeUnmount(() => {
 .info-hero__inner {
   text-align: center !important;
   padding-inline: var(--gutter) !important;
+  padding-top: clamp(4.5rem, 10vh, 7rem);
 }
 
 .info-hero__title {
@@ -1265,8 +1259,9 @@ onBeforeUnmount(() => {
 
 .info-split {
   position: relative;
-  z-index: 4;
+  z-index: 3;
   border-top: 1px solid rgba(5, 5, 5, 0.08);
+  margin-top: 0 !important;
 }
 
 .info-media {
@@ -1322,44 +1317,23 @@ onBeforeUnmount(() => {
   color: rgba(5, 5, 5, 0.9) !important;
 }
 
-.info-block--truth {
-  padding-top: calc(clamp(6rem, 12vh, 8.5rem) + env(safe-area-inset-top)) !important;
-  scroll-margin-top: clamp(6rem, 12vh, 8.5rem);
-}
-
 .info-page__footer {
-  position: sticky !important;
-  bottom: 0 !important;
-  z-index: 1;
+  position: relative !important;
+  bottom: auto !important;
+  z-index: 3;
   display: block !important;
-  margin-top: clamp(1.5rem, 4vh, 3rem);
+  margin-top: clamp(3rem, 8vh, 6rem);
 }
 
 @media (max-width: 767px) {
   .info-hero {
-    position: sticky !important;
-    top: 0 !important;
-    height: 100svh;
-    min-height: 100svh;
     height: 100dvh;
     min-height: 100dvh;
     padding-top: calc(0.75rem + env(safe-area-inset-top));
   }
 
   .info-hero__title {
-    position: static !important;
-    width: auto !important;
-    height: auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: visible !important;
-    clip: auto !important;
-    white-space: normal !important;
     font-size: clamp(2.4rem, 16vw, 4.4rem);
-  }
-
-  .info-block--truth {
-    padding-top: calc(clamp(5.2rem, 10vh, 7rem) + env(safe-area-inset-top)) !important;
   }
 }
 </style>
