@@ -88,7 +88,12 @@ export const createApp = ViteSSG(
         }
       }
 
-      router.afterEach(() => {
+      router.afterEach((to) => {
+        if (!to.hash) {
+          window.__lenis?.scrollTo?.(0, { immediate: true, force: true });
+          window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        }
+
         requestAnimationFrame(() => {
           window.dispatchEvent(new Event("app:route-change"));
           window.dispatchEvent(new Event("content:loaded"));
