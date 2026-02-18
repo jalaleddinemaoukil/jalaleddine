@@ -21,7 +21,7 @@ export const initLenis = () => {
   const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
   const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
 
-  const shouldUseLenis = !prefersReduced && !isCoarsePointer && !saveData && !lowMemory && !lowCpu;
+  const shouldUseLenis = !prefersReduced && !saveData && !lowMemory && !lowCpu;
 
   if (!state.lenis && shouldUseLenis) {
     const wrapper = window;
@@ -29,12 +29,12 @@ export const initLenis = () => {
     state.lenis = new Lenis({
       wrapper,
       content,
-      lerp: 0.08,
-      duration: 0.95,
+      lerp: isCoarsePointer ? 0.12 : 0.08,
+      duration: isCoarsePointer ? 0.9 : 1.1,
       smoothWheel: true,
-      smoothTouch: false,
+      smoothTouch: isCoarsePointer,
       wheelMultiplier: 0.95,
-      touchMultiplier: 1.0,
+      touchMultiplier: isCoarsePointer ? 0.85 : 1.0,
       normalizeWheel: true,
       autoRaf: false,
       autoResize: true,

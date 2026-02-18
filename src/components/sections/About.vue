@@ -1,40 +1,17 @@
 <template>
-  <section
-    id="about"
-    ref="aboutRef"
-    class="about section"
-    @pointerleave="handleSectionPointerLeave"
-  >
+  <section id="about" ref="aboutRef" class="about section" @pointerleave="handleSectionPointerLeave">
     <div class="shell">
       <div class="about__grid">
         <div class="about__visual" :class="{ 'is-media-hovered': isMediaHovered }">
-          <a
-            class="about__visual-link"
-            href="/info"
-            aria-label="Learn more about me"
-            @click="handleVisualClick"
-            @pointerenter="handleMediaPointerEnter($event)"
-            @pointermove="handleMediaPointerMove($event)"
-            @pointerleave="handleMediaPointerLeave"
-            @pointercancel="handleMediaPointerLeave"
-            @focus="handleMediaFocus"
-            @blur="handleMediaBlur"
-          >
+          <a class="about__visual-link" href="/info" aria-label="Learn more about me" @click="handleVisualClick"
+            @pointerenter="handleMediaPointerEnter($event)" @pointermove="handleMediaPointerMove($event)"
+            @pointerleave="handleMediaPointerLeave" @pointercancel="handleMediaPointerLeave" @focus="handleMediaFocus"
+            @blur="handleMediaBlur">
             <div ref="imageFrame" class="image-frame">
               <div ref="imageReveal" class="image-reveal">
-                <video
-                  ref="imageEl"
-                  class="about__image"
-                  :src="videoReady ? profileImg : undefined"
-                  muted
-                  loop
-                  :autoplay="videoReady"
-                  playsinline
-                  :preload="videoReady ? 'auto' : 'none'"
-                  aria-hidden="true"
-                  role="presentation"
-                  tabindex="-1"
-                >
+                <video ref="imageEl" class="about__image" :src="videoReady ? profileImg : undefined" muted loop
+                  :autoplay="videoReady" playsinline :preload="videoReady ? 'auto' : 'none'" aria-hidden="true"
+                  role="presentation" tabindex="-1">
                   <track kind="captions" src="/captions/blank.vtt" srclang="en" label="English" default />
                 </video>
                 <div class="about__image-overlay" aria-hidden="true"></div>
@@ -46,25 +23,24 @@
 
         <div class="about__content">
           <RevealText tag="h2" class="about__heading" v-bind="revealProps">
-            I build websites that don't break when your business grows.
-            Fast, functional, and built to actually make you money.
+            I build websites that work the way your business needs them to.
           </RevealText>
 
           <div class="philosophy">
             <RevealText tag="p" v-bind="revealProps">
-              Most developers hand you a site and disappear. I stick around.
-              Whether you're launching something new or fixing a mess someone
-              else left behind, I build web applications that work the way you
-              need them to without the tech headaches. Clean code, real results, zero BS.
+              Your website either works for your business or against it. There's no middle ground.
+              I'm Jalal, software engineer and web designer from Rabat. I build the whole thing. Design, code, the
+              systems underneath. Sites that scale when your business does and don't break when something changes.
+              Most developers disappear after launch. I don't.
             </RevealText>
           </div>
 
           <div ref="ctaRef" class="cta-wrapper">
             <span class="mask">
               <span class="reveal">
-                <Button tag="a" href="#" :data-mailto="mailtoEncoded" width="clamp(280px, 100%, 420px)"
-                  height="clamp(56px, 4vw, 72px)" fontSize="clamp(14px, 1.8vw, 16px)" paddingX="clamp(32px, 3vw, 48px)"
-                  paddingY="0px" font-weight="600">
+                <Button tag="a" href="#" :data-mailto="mailtoEncoded" width="clamp(280px, 100%, 500px)"
+                  height="clamp(58px, 3.6vw, 84px)" fontSize="clamp(15px, 1.15vw, 19px)"
+                  paddingX="clamp(32px, 2.6vw, 56px)" paddingY="0px" font-weight="600">
                   Let's Build Something Great
                 </Button>
               </span>
@@ -73,12 +49,7 @@
         </div>
       </div>
     </div>
-    <div
-      ref="cursorRef"
-      class="about__cursor"
-      :class="{ 'is-visible': cursorVisible }"
-      aria-hidden="true"
-    >
+    <div ref="cursorRef" class="about__cursor" :class="{ 'is-visible': cursorVisible }" aria-hidden="true">
       <span class="about__cursor-chip">
         <span class="about__cursor-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
@@ -272,7 +243,7 @@ const warmVideo = async () => {
   videoReady.value = true;
   await nextTick();
   imageEl.value?.load?.();
-  imageEl.value?.play?.().catch(() => {});
+  imageEl.value?.play?.().catch(() => { });
   videoObserver?.disconnect();
   videoObserver = null;
   scheduleScrollRefresh();
@@ -549,7 +520,7 @@ onBeforeUnmount(() => {
 .about__grid {
   display: grid;
   grid-template-columns: 40% 60%;
-  gap: clamp(3rem, 6vw, 6rem);
+  gap: clamp(3rem, 5vw, 7rem);
   align-items: center;
 }
 
@@ -599,7 +570,7 @@ onBeforeUnmount(() => {
   top: clamp(80px, 12vh, 120px);
   width: 100%;
   height: 100%;
-  min-height: clamp(600px, 70vh, 800px);
+  min-height: clamp(620px, 72vh, 920px);
   will-change: transform, opacity;
 }
 
@@ -645,14 +616,14 @@ onBeforeUnmount(() => {
 .about__content {
   display: flex;
   flex-direction: column;
-  gap: clamp(3rem, 6vw, 5rem);
-  padding-block: clamp(3rem, 6vw, 5rem);
-  max-width: 680px;
+  gap: clamp(3rem, 5vw, 6rem);
+  padding-block: clamp(3rem, 5vw, 6rem);
+  max-width: 760px;
 }
 
 .about__heading {
   font-family: var(--font-main);
-  font-size: var(--text-xl);
+  font-size: clamp(1.8rem, 2.1vw, 2.9rem);
   line-height: 1.2;
   text-transform: uppercase;
   font-weight: 400;
@@ -662,11 +633,11 @@ onBeforeUnmount(() => {
 }
 
 .philosophy {
-  max-width: 580px;
+  max-width: 640px;
 }
 
 .philosophy p {
-  font-size: var(--text-base);
+  font-size: clamp(1.15rem, 1.05rem + 0.35vw, 1.5rem);
   line-height: var(--lh-relaxed);
   font-weight: 400;
   color: rgba(0, 0, 0, 0.7);
@@ -677,6 +648,14 @@ onBeforeUnmount(() => {
 
 .cta-wrapper {
   margin-top: clamp(0.5rem, 1vw, 1rem);
+}
+
+
+@media screen and (min-width: 1440px) {
+  .about>.shell {
+    padding-left: clamp(36px, 2.8vw, 64px);
+    padding-right: clamp(36px, 2.8vw, 64px);
+  }
 }
 
 
@@ -727,7 +706,9 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+@media (hover: none),
+(pointer: coarse),
+(prefers-reduced-motion: reduce) {
   .about__cursor {
     display: none;
   }

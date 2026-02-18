@@ -3,6 +3,11 @@
     <Hero />
     <About />
     <Work :items="workItems" />
+    <Statement
+  heading1="Built to be"
+  paragraph="I work with founders and studios who refuse to settle for average. Every project starts with a question: what will make someone stop scrolling? The answer is never a template."
+  heading2="Remembered."
+/>
     <Services />
     <Footer />
   </main>
@@ -19,6 +24,7 @@ import Services from "@/components/sections/Services.vue";
 import Work from "@/components/sections/Work.vue";
 import Footer from "@/components/sections/Footer.vue";
 import { fetchHomeWorkItems } from "@/lib/sanity.js";
+import Statement from "../components/sections/Statement.vue";
 
 useHead(buildHead("/"));
 

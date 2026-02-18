@@ -40,9 +40,9 @@ const fetchSanity = async (query) => {
 
 export const fetchHomeWorkItems = async () => {
   const workQuery =
-    '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,"src":videoSrc.asset->url,"bg":bgSrc.asset->url}';
+    '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,client,category,"src":videoSrc.asset->url,"bg":bgSrc.asset->url}';
   const result = await fetchSanity(workQuery);
-  return result.filter((item) => item?.src && item?.bg);
+  return result.filter((item) => item?.bg && item?.title);
 };
 
 export const fetchWorksItems = async () => {

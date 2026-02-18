@@ -1,596 +1,456 @@
 <template>
-  <section id="services" class="services section">
+  <section id="services" class="services-section" ref="sectionRef">
+    <div class="services-wrapper">
+      <div class="left-panel">
+        <h2 class="left-title" ref="leftTitleRef">
+          <span class="title-line">What I bring</span>
+          <span class="title-line">To The Table</span>
+          <span class="subtitle">(Services)</span>
+        </h2>
 
-    <div class="shell">
-      <RevealText tag="h2" :scroll="true" class="work__heading">
-        What I Bring to the Table
-      </RevealText>
-    </div>
-
-
-    <div class="services__list">
-      <article v-for="(service, idx) in services" :key="service.id" class="service" :style="{
-        '--stack-index': idx,
-        '--stack-total': services.length,
-      }" :ref="(el) => setCardRef(el, idx)">
-        <div class="shell service__inner">
-          <div class="service__content" :ref="(el) => setContentRef(el, idx)">
-            <p class="service__eyebrow" data-split="heading" data-split-reveal="words">
-              {{ service.subtitle }}
-            </p>
-            <h3 class="service__title" data-split="heading" data-split-reveal="lines">
-              {{ service.title }}
-            </h3>
-            <p class="service__desc" data-split="heading" data-split-reveal="lines">
-              {{ service.description }}
-            </p>
-          </div>
-
-          <div class="service__media" :ref="(el) => setMediaWrapRef(el, idx)">
-            <img
-              :ref="(el) => setMediaImageRef(el, idx)"
-              class="service__image"
-              :src="service.imageSrc"
-              :srcset="service.imageSrcset"
-              :sizes="service.imageSizes"
-              :alt="service.imageAlt"
-              loading="lazy"
-              decoding="async"
-            />
-            <div class="service__media-shade" aria-hidden="true"></div>
-          </div>
+        <div class="progress-track">
+          <div class="progress-fill" ref="progressFillRef"></div>
         </div>
-      </article>
+      </div>
+
+      <div class="right-panel" ref="rightPanelRef">
+        <div class="cards-track">
+          <article
+            v-for="(service, i) in services"
+            :key="i"
+            class="service-card"
+            :class="{ 'is-active': activeIndex === i }"
+            :ref="
+              (el) => {
+                if (el) cardRefs[i] = el;
+              }
+            "
+          >
+            <div class="card-body">
+              <div class="card-num">{{ service.number }}</div>
+              <div class="card-text">
+                <div class="card-title" v-html="service.title"></div>
+                <p class="card-desc">{{ service.desc }}</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
-import RevealText from "../base/RevealText.vue";
-const buildServiceImage = (name) => ({
-  src: `/images/${name}-720.webp`,
-  srcset: [
-    `/images/${name}-480.webp 480w`,
-    `/images/${name}-720.webp 720w`,
-    `/images/${name}-960.webp 960w`,
-    `/images/${name}.webp 1080w`,
-  ].join(", "),
-  sizes: "(max-width: 991px) 90vw, (max-width: 1280px) 65vw, 52vw",
-});
-
-const webImage = buildServiceImage("web");
-const cloudImage = buildServiceImage("cloud");
-const performanceImage = buildServiceImage("optimization");
+import { ref, onMounted, onBeforeUnmount } from "vue";
 
 const services = [
   {
-    id: 1,
-    title: "Web Development & Design",
-    subtitle: "Digital products people actually use",
-    description:
-      "Interfaces that feel intuitive. Backends that handle growth. Design decisions that drive conversions. I build web applications from concept to launch. No handoffs, no miscommunication, just cohesive products that work.",
-    imageSrc: webImage.src,
-    imageSrcset: webImage.srcset,
-    imageSizes: webImage.sizes,
-    imageAlt: "Web Development & Design showcase",
+    number: "01",
+    title: "Web Development<br>& Design",
+    desc: "Interfaces that feel intuitive. Backends that handle growth. Design decisions that drive conversions. I build web applications from concept to launch. No handoffs, no miscommunication, just cohesive products that work.",
   },
   {
-    id: 2,
+    number: "02",
     title: "Cloud Solutions",
-    subtitle: "Infrastructure that scales with you",
-    description:
-      "Real-time data processing. Serverless architectures. Systems that grow without the growing pains. Your infrastructure should enable your business, not slow it down.",
-    imageSrc: cloudImage.src,
-    imageSrcset: cloudImage.srcset,
-    imageSizes: cloudImage.sizes,
-    imageAlt: "Cloud Solutions infrastructure",
+    desc: "Real-time data processing. Serverless architectures. Systems that grow without the growing pains. Your infrastructure should enable your business, not slow it down.",
   },
   {
-    id: 3,
-    title: "Performance & Security",
-    subtitle: "Speed that converts",
-    description:
-      "Fast load times. Clean code. Better user experience. I turn slow, bloated applications into lean, efficient ones. 30% faster isn't luck it's intentional optimization.",
-    imageSrc: performanceImage.src,
-    imageSrcset: performanceImage.srcset,
-    imageSizes: performanceImage.sizes,
-    imageAlt: "Performance & Optimization metrics",
+    number: "03",
+    title: "Performance<br>& Security",
+    desc: "Fast load times. Clean code. Better user experience. I turn slow, bloated applications into lean, efficient ones. 30% faster isn't luck it's intentional optimization.",
   },
 ];
 
-const cards = ref([]);
-const contentBlocks = ref([]);
-const mediaWraps = ref([]);
-const mediaImages = ref([]);
-let resizeTimer = null;
-let resizeHandler = null;
-let splitInstances = [];
-let splitObserver = null;
+const sectionRef = ref(null);
+const leftTitleRef = ref(null);
+const rightPanelRef = ref(null);
+const progressFillRef = ref(null);
+const cardRefs = ref([]);
+const activeIndex = ref(0);
 
-const setCardRef = (el, idx) => {
-  if (!el) return;
-  cards.value[idx] = el;
-};
-
-const setContentRef = (el, idx) => {
-  if (!el) return;
-  contentBlocks.value[idx] = el;
-};
-
-const setMediaWrapRef = (el, idx) => {
-  if (!el) return;
-  mediaWraps.value[idx] = el;
-};
-
-const setMediaImageRef = (el, idx) => {
-  if (!el) return;
-  mediaImages.value[idx] = el;
-};
-
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ||
-    window.matchMedia?.("(pointer: coarse)")?.matches ||
-    navigator.connection?.saveData === true ||
-    (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4) ||
-    (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4));
-
-const stripProhibitedAria = (node) => {
-  if (!node) return;
-  node.removeAttribute("aria-label");
-  node.removeAttribute("aria-labelledby");
-};
-
-const stripSplitAria = () => {
-  document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
-    stripProhibitedAria(heading);
-  });
-};
-
-const revealAllSplitHeadings = () => {
-  document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
-    heading.style.visibility = "visible";
-    heading.style.opacity = "1";
-    stripProhibitedAria(heading);
-  });
-};
+let triggers = [];
+let gsapPack = null;
 
 const ensurePlugins = () => {
   if (typeof window === "undefined") return null;
   const gsap = window.gsap;
   const ScrollTrigger = window.ScrollTrigger;
-  const SplitText = window.SplitText;
   if (!gsap) return null;
   if (ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
-  if (SplitText) gsap.registerPlugin(SplitText);
-  return { gsap, ScrollTrigger, SplitText };
+  return { gsap, ScrollTrigger };
 };
 
-const splitConfig = {
-  lines: { duration: 0.8, stagger: 0.08 },
-  words: { duration: 0.6, stagger: 0.06 },
-  chars: { duration: 0.4, stagger: 0.01 },
+const waitForGsap = async (timeoutMs = 2500) => {
+  const start = performance.now();
+  while (performance.now() - start < timeoutMs) {
+    const pack = ensurePlugins();
+    if (pack?.gsap && pack?.ScrollTrigger) return pack;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return ensurePlugins();
 };
 
-const initMaskTextScrollReveal = () => {
-  const pack = ensurePlugins();
-  if (!pack || !pack.SplitText) {
-    revealAllSplitHeadings();
-    return;
-  }
-  const { gsap, SplitText } = pack;
+onMounted(async () => {
+  gsapPack = await waitForGsap();
+  if (!gsapPack?.gsap || !gsapPack?.ScrollTrigger) return;
 
-  splitInstances.forEach((instance) => {
-    if (instance && instance.revert) instance.revert();
-  });
-  splitInstances = [];
-  if (splitObserver) {
-    splitObserver.disconnect();
-    splitObserver = null;
-  }
-  document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
-    heading.removeAttribute("data-split-ready");
-  });
-  stripSplitAria();
-
-  if (prefersReducedMotion()) {
-    revealAllSplitHeadings();
-    return;
-  }
-
-  const splitHeading = (heading) => {
-    if (!heading || !heading.textContent?.trim()) return;
-    if (heading.dataset.splitReady === "true") return;
-    heading.dataset.splitReady = "true";
-
-    stripProhibitedAria(heading);
-    gsap.set(heading, { autoAlpha: 1 });
-
-    const type = heading.dataset.splitReveal || "lines";
-    const typesToSplit =
-      type === "lines"
-        ? ["lines"]
-        : type === "words"
-          ? ["lines", "words"]
-          : ["lines", "words", "chars"];
-
-    const instance = SplitText.create(heading, {
-      type: typesToSplit.join(", "),
-      mask: "lines",
-      autoSplit: true,
-      linesClass: "line",
-      wordsClass: "word",
-      charsClass: "letter",
-      onSplit: function (splitInstance) {
-        stripProhibitedAria(heading);
-        const targets = splitInstance[type];
-        const config = splitConfig[type];
-
-        if (!targets || targets.length === 0) return;
-
-        return gsap.from(targets, {
-          yPercent: 110,
-          duration: config.duration,
-          stagger: config.stagger,
-          ease: "expo.out",
-          scrollTrigger: {
-            trigger: heading,
-            start: "clamp(top 85%)",
-            once: true,
-          },
-        });
-      },
-    });
-
-    splitInstances.push(instance);
-  };
-
-  const headings = Array.from(document.querySelectorAll('[data-split="heading"]'));
-  if (!("IntersectionObserver" in window)) {
-    headings.forEach(splitHeading);
-    return;
-  }
-
-  splitObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          splitHeading(entry.target);
-          splitObserver?.unobserve(entry.target);
-        }
-      });
-    },
-    { rootMargin: "200px 0px", threshold: 0.05 }
-  );
-
-  headings.forEach((heading) => splitObserver.observe(heading));
-};
-
-const buildParallaxAnimations = () => {
-  const pack = ensurePlugins();
-  if (!pack) return;
-  const { gsap, ScrollTrigger } = pack;
-  if (!ScrollTrigger) return;
-
-  ScrollTrigger.getAll().forEach((t) => {
-    if (String(t?.vars?.id || "").startsWith("services-")) {
-      t.kill(true);
-    }
-  });
-
-  if (prefersReducedMotion()) {
-    gsap.set(mediaImages.value.filter(Boolean), { clearProps: "all" });
-    gsap.set(contentBlocks.value.filter(Boolean), { clearProps: "all" });
-    return;
-  }
-
-  cards.value.forEach((card, idx) => {
-    const media = mediaImages.value[idx];
-    const mediaWrap = mediaWraps.value[idx];
-    const content = contentBlocks.value[idx];
-    if (!card || !media || !mediaWrap) return;
-
-    if (content) {
-      gsap.fromTo(
-        content,
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.9,
-          ease: "power3.out",
-          scrollTrigger: {
-            id: `services-reveal-${idx}`,
-            trigger: card,
-            start: "top 75%",
-            once: true,
-            invalidateOnRefresh: true,
-          },
-        }
-      );
-    }
-
-    gsap.fromTo(
-      mediaWrap,
-      { y: 30, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1.0,
-        ease: "power3.out",
-        scrollTrigger: {
-          id: `services-media-${idx}`,
-          trigger: card,
-          start: "top 80%",
-          once: true,
-          invalidateOnRefresh: true,
-        },
-      }
-    );
-
-    gsap.fromTo(
-      media,
-      { yPercent: -12, scale: 1.08 },
-      {
-        yPercent: 12,
-        scale: 1.08,
-        ease: "none",
-        scrollTrigger: {
-          id: `services-parallax-${idx}`,
-          trigger: mediaWrap,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: 0.9,
-          invalidateOnRefresh: true,
-        },
-      }
-    );
-  });
-};
-
-onMounted(() => {
-  if (prefersReducedMotion()) {
-    revealAllSplitHeadings();
-  }
-  nextTick(() => {
-    setTimeout(() => {
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => {
-          initMaskTextScrollReveal();
-          buildParallaxAnimations();
-        });
-      } else {
-        initMaskTextScrollReveal();
-        buildParallaxAnimations();
-      }
-    }, 50);
-  });
-
-  resizeHandler = () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      initMaskTextScrollReveal();
-      buildParallaxAnimations();
-      ensurePlugins()?.ScrollTrigger?.refresh?.();
-    }, 160);
-  };
-  window.addEventListener("resize", resizeHandler, { passive: true });
+  initScrollCards();
 });
 
 onBeforeUnmount(() => {
-  if (resizeHandler) window.removeEventListener("resize", resizeHandler);
-  clearTimeout(resizeTimer);
-  if (splitObserver) {
-    splitObserver.disconnect();
-    splitObserver = null;
-  }
-
-  // Clean up SplitText instances
-  splitInstances.forEach((instance) => {
-    if (instance && instance.revert) instance.revert();
-  });
-  splitInstances = [];
-
-  const st = ensurePlugins()?.ScrollTrigger;
-  st?.getAll?.().forEach((t) => {
-    if (String(t?.vars?.id || "").startsWith("services-")) t.kill(true);
-  });
+  triggers.forEach((t) => t.kill());
+  triggers = [];
 });
+
+function initScrollCards() {
+  const { gsap, ScrollTrigger } = gsapPack || {};
+  if (!gsap || !ScrollTrigger) return;
+
+  const cards = cardRefs.value.filter(Boolean);
+  if (!cards.length) return;
+
+  const getStickyTop = () => {
+    const raw = window.getComputedStyle(cards[0]).top;
+    const parsed = parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  gsap.set(cards, { transformOrigin: "50% 100%" });
+
+  const progressTrigger = ScrollTrigger.create({
+    trigger: cards[0],
+    start: () => `top top+=${getStickyTop()}`,
+    endTrigger: cards[cards.length - 1],
+    end: () => `top top+=${getStickyTop()}`,
+    invalidateOnRefresh: true,
+    scrub: 0.5,
+    onRefreshInit: () => {
+      if (progressFillRef.value) progressFillRef.value.style.width = "0%";
+    },
+    onUpdate(self) {
+      if (!progressFillRef.value) return;
+      progressFillRef.value.style.width = `${self.progress * 100}%`;
+    },
+  });
+  triggers.push(progressTrigger);
+
+  cards.forEach((card, i) => {
+    const activeTrigger = ScrollTrigger.create({
+      trigger: card,
+      start: () => `top top+=${getStickyTop()}`,
+      end: () => `bottom top+=${getStickyTop()}`,
+      invalidateOnRefresh: true,
+      onEnter: () => {
+        activeIndex.value = i;
+      },
+      onEnterBack: () => {
+        activeIndex.value = i;
+      },
+    });
+    triggers.push(activeTrigger);
+  });
+}
+
+function onCardAction(index) {
+  console.log("Card action:", services[index].title);
+}
 </script>
 
 <style scoped>
-.services {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.services-section {
   position: relative;
   z-index: 10;
-  background: var(--color-surface);
-  color: var(--color-white);
-}
-
-.services__intro {
-  max-width: clamp(320px, 100vw, 720px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(1rem, 2vw, 1.75rem);
-}
-
-[data-split="heading"] {
-  visibility: hidden;
-}
-
-[data-split="heading"] {
-  -webkit-text-rendering: optimizeSpeed;
-  text-rendering: optimizeSpeed;
-  -webkit-transform: translateZ(0);
-  font-kerning: none;
-}
-
-.services__eyebrow {
-  text-transform: uppercase;
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-label);
-  color: rgba(237, 237, 237, 0.7);
-  margin: 0;
-}
-
-.services__heading {
-  font-size: var(--text-4xl);
-  line-height: var(--lh-tight);
-  margin: 0;
-  letter-spacing: var(--tracking-display);
-  text-transform: uppercase;
-}
-
-.services__subhead {
-  font-size: var(--text-lg);
-  line-height: var(--lh-base);
-  color: rgba(237, 237, 237, 0.72);
-  margin: 0;
-  letter-spacing: var(--tracking-body);
-}
-
-.services__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-top: clamp(3rem, 8vw, 6rem);
-  border-top: 1px solid rgba(237, 237, 237, 0.08);
-}
-
-
-.work__heading {
-  font-size: var(--text-4xl);
-  line-height: var(--lh-tight);
-  margin: 0 0 clamp(2rem, 5vw, 4rem);
-  letter-spacing: var(--tracking-display);
-  text-transform: uppercase;
-}
-
-
-.service {
-  position: relative;
-  padding-block: clamp(2.5rem, 6vw, 5rem);
-  border-bottom: 1px solid rgba(237, 237, 237, 0.08);
-}
-
-.service__inner {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  align-items: stretch;
-  gap: clamp(2rem, 5vw, 4.5rem);
-}
-
-.service__content {
-  grid-column: span 5;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1rem, 2vw, 1.4rem);
-  max-width: min(38rem, 100%);
-}
-
-.service__content .service__eyebrow {
-  color: currentColor;
-  opacity: 0.75;
-}
-
-.service__title {
-  font-size: var(--text-2xl);
-  line-height: var(--lh-snug);
-  margin: 0;
-  letter-spacing: var(--tracking-display);
-  text-transform: uppercase;
-}
-
-.service__desc {
-  font-size: var(--text-base);
-  line-height: var(--lh-relaxed);
-  margin: 0;
-  opacity: 0.85;
-  letter-spacing: var(--tracking-body);
-}
-
-.service__media {
-  grid-column: span 7;
-  position: relative;
-  min-height: clamp(320px, 62vh, 720px);
-  height: 100%;
   width: 100%;
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  padding-block: clamp(56px, 8vw, 120px);
+  scroll-margin-top: clamp(100px, 14vh, 140px);
+}
+
+.services-wrapper {
+  width: 100%;
+  max-width: var(--size-container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  --panel-top: 30px;
+  --panel-height: clamp(450px, 90vh, 900px);
+  --panel-radius: 15px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(18px, 2vw, 30px);
+}
+
+.left-panel {
+  position: sticky;
+  top: var(--panel-top);
+  width: 100%;
+  height: var(--panel-height);
+  border-radius: var(--panel-radius);
+  overflow: hidden;
+  background: #d1d1d1;
+}
+
+.left-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(28px, 3vw, 52px) clamp(24px, 2.8vw, 48px);
   overflow: hidden;
 }
 
-.service__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.title-line {
   display: block;
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
+  font-family: var(--font-main);
+  font-weight: 500;
+  font-size: clamp(2.6rem, 6.5vw, 5.75rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  letter-spacing: 0.01em;
+  will-change: transform, opacity;
 }
 
-.service__media-shade {
+.progress-track {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
-  opacity: 0.8;
-  pointer-events: none;
+  bottom: clamp(20px, 2.4vw, 36px);
+  left: clamp(24px, 2.8vw, 48px);
+  right: clamp(24px, 2.8vw, 48px);
+  height: 3px;
+  background: rgba(5, 5, 5, 0.2);
+  border-radius: 2px;
 }
 
-.service.is-light .service__media-shade {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
-  opacity: 0.6;
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-ink);
+  border-radius: 2px;
+  will-change: width;
+}
+
+.right-panel {
+  width: 100%;
+}
+
+.cards-track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 26px);
+  padding-bottom: 0;
+}
+
+.service-card {
+  position: sticky;
+  top: var(--panel-top);
+  border-radius: var(--panel-radius);
+  background: var(--color-bg);
+  color: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: var(--panel-height);
+  min-height: var(--panel-height);
+  padding: clamp(24px, 3vw, 56px) clamp(20px, 2.8vw, 56px)
+    clamp(22px, 2.6vw, 52px);
+  will-change: transform, opacity;
+  transition: transform 0.3s ease;
+}
+
+.service-card:nth-child(2) {
+  margin-top: 0;
+}
+
+.service-card:nth-child(3) {
+  margin-top: 0;
+}
+
+.service-card:nth-child(1) {
+  z-index: 1;
+}
+
+.service-card:nth-child(2) {
+  z-index: 2;
+}
+
+.service-card:nth-child(3) {
+  z-index: 3;
+}
+
+.service-card.is-active:not(:last-child) {
+  transform: translateY(-6px);
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: clamp(14px, 1.8vw, 28px);
+  padding: 20px 0;
+}
+
+.card-num {
+  font-family: var(--font-main);
+  font-weight: 500;
+  font-size: clamp(4.8rem, 9vw, 9.6rem);
+  color: var(--color-white);
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+  margin-bottom: clamp(6px, 1vw, 14px);
+}
+
+.card-text {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.card-title {
+  font-family: var(--font-main);
+  font-weight: 500;
+  font-size: clamp(2.35rem, 2.1rem + 2.1vw, 3.6rem);
+  text-transform: uppercase;
+  color: var(--color-white);
+  letter-spacing: 0.04em;
+  line-height: 1.08;
+  margin-bottom: clamp(20px, 2.4vw, 25px);
+}
+
+.card-desc {
+  font-size: clamp(1.98rem, 1.92rem + 1.18vw, 2.15rem);
+  font-weight: 500;
+  color: var(--color-white);
+  line-height: 1.6;
+  max-width: 46ch;
+}
+
+.subtitle {
+  display: block;
+  font-size: clamp(3rem, 0.5vw, 5rem);
+  color: var(--color-ink);
+  font-family: var(--font-main);
+  margin-top: clamp(10px, 0.8vw, 14px);
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  user-select: none;
+}
+
+@media (min-width: 992px) {
+  .services-wrapper {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .right-panel {
+    min-height: 100%;
+  }
 }
 
 @media (max-width: 991px) {
-
-  .service__content,
-  .service__media {
-    grid-column: 1 / -1;
+  .services-section {
+    padding-block: clamp(40px, 8vw, 72px);
   }
 
-  .service__content {
-    order: 1;
+  .services-wrapper {
+    --panel-top: 0px;
+    --panel-height: clamp(340px, 62vh, 560px);
+    --panel-radius: 16px;
+    gap: clamp(12px, 3.2vw, 20px);
   }
 
-  .service__media {
-    order: 2;
+  .left-panel {
+    position: relative;
+    top: auto;
+  }
+
+  .left-title {
+    padding: clamp(18px, 4.5vw, 28px);
+  }
+
+  .title-line {
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    line-height: 0.92;
+  }
+
+  .subtitle {
+    font-size: clamp(1.05rem, 3.8vw, 1.35rem);
+    margin-top: clamp(6px, 2vw, 10px);
+  }
+
+  .progress-track {
+    left: clamp(18px, 4.5vw, 28px);
+    right: clamp(18px, 4.5vw, 28px);
+    bottom: clamp(14px, 3.2vw, 22px);
+  }
+
+  .cards-track {
+    padding-bottom: 0;
+    gap: clamp(10px, 2.8vw, 18px);
+  }
+
+  .service-card,
+  .service-card:not(:first-child) {
+    position: relative;
+    top: auto;
+    margin-top: 0;
+    height: var(--panel-height);
+    min-height: var(--panel-height);
+    padding: clamp(16px, 4.2vw, 26px);
+  }
+
+  .service-card.is-active {
+    transform: none;
+  }
+
+  .card-body {
+    gap: clamp(8px, 2.6vw, 14px);
+    padding: 0;
+  }
+
+  .card-num {
+    font-size: clamp(3rem, 12vw, 4.6rem);
+    margin-bottom: 0;
+  }
+
+  .card-title {
+    font-size: clamp(1.2rem, 4.8vw, 1.75rem);
+    line-height: 1.08;
+    margin-bottom: clamp(8px, 2.2vw, 12px);
+  }
+
+  .card-desc {
+    font-size: clamp(0.95rem, 3.6vw, 1.05rem);
+    line-height: 1.55;
+    max-width: 100%;
   }
 }
 
 @media (max-width: 767px) {
-  .service__media {
-    min-height: clamp(240px, 48vh, 420px);
-    height: auto;
+  .services-wrapper {
+    --panel-height: clamp(300px, 56vh, 440px);
   }
 
-  .services__list {
-    margin-top: clamp(2rem, 7vw, 3.5rem);
-  }
-
-  .service__eyebrow {
-    font-size: clamp(0.7rem, 3vw, 0.85rem);
-  }
-
-  .service__title {
-    font-size: clamp(1.6rem, 6vw, 2.2rem);
-    line-height: 1.2;
-  }
-
-  .service__desc {
-    font-size: clamp(0.95rem, 4vw, 1.05rem);
-    line-height: 1.65;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-split="heading"] {
-    visibility: visible !important;
-  }
-}
-
-@media (pointer: coarse) {
-  [data-split="heading"] {
-    visibility: visible !important;
+  .services-section {
+    scroll-margin-top: clamp(84px, 13vh, 110px);
   }
 }
 </style>

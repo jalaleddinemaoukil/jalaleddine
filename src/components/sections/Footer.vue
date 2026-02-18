@@ -3,7 +3,7 @@
     ref="footerRef"
     id="footer"
     class="site-footer"
-    :class="[`site-footer--${props.variant}`, { 'is-visible': isVisible }]"
+    :class="['site-footer--dark', { 'is-visible': isVisible }]"
   >
     <div class="site-footer__overlay" aria-hidden="true"></div>
     <div class="shell site-footer__content">
@@ -11,10 +11,10 @@
         <div class="site-footer__primary">
           <div class="site-footer__text">
             <RevealText tag="h2" class="site-footer__title" :scroll="true" splitReveal="lines">
-              A faster, clearer, more memorable digital presence.
+              Your website should work as hard as you do.
             </RevealText>
             <RevealText tag="p" class="site-footer__copy" :scroll="true" splitReveal="lines">
-              Clean code. Bold design. A site that feels premium the moment it loads.
+              Let's build something fast, scalable, and actually reliable.
             </RevealText>
           </div>
 
@@ -23,10 +23,10 @@
               tag="a"
               href="#"
               :data-mailto="mailtoEncoded"
-              width="min(100%, 320px)"
-              height="clamp(52px, 6vw, 64px)"
-              fontSize="clamp(13px, 1.6vw, 16px)"
-              paddingX="clamp(22px, 2.4vw, 34px)"
+              width="min(100%, 420px)"
+              height="clamp(56px, 4vw, 80px)"
+              fontSize="clamp(14px, 1vw, 19px)"
+              paddingX="clamp(24px, 2vw, 46px)"
               paddingY="0px"
               fontWeight="700"
               letterSpacing="0.08em"
@@ -47,10 +47,10 @@
                   <RevealText tag="span" :scroll="true" splitReveal="words">Work</RevealText>
                 </RouterLink>
                 <RouterLink class="site-footer__link" to="/#services" aria-label="Services">
-                  <RevealText tag="span" :scroll="true" splitReveal="words">Services</RevealText>
+                  <RevealText tag="span" :scroll="true" splitReveal="words">What I do</RevealText>
                 </RouterLink>
                 <RouterLink class="site-footer__link" to="/info" aria-label="About">
-                  <RevealText tag="span" :scroll="true" splitReveal="words">About</RevealText>
+                  <RevealText tag="span" :scroll="true" splitReveal="words">Who I am</RevealText>
                 </RouterLink>
               </div>
             </div>
@@ -93,14 +93,6 @@
 import { onMounted, onBeforeUnmount, ref } from "vue";
 import RevealText from "../base/RevealText.vue";
 import Button from "../base/Button.vue";
-
-const props = defineProps({
-  variant: {
-    type: String,
-    default: "light",
-    validator: (value) => ["light", "dark"].includes(value),
-  },
-});
 
 const footerRef = ref(null);
 const isVisible = ref(false);
@@ -182,8 +174,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: clamp(2rem, 5vw, 3.5rem);
-  padding: clamp(4rem, 12vw, 7rem) clamp(16px, 2.2vw, 32px) clamp(3rem, 8vw, 5rem);
+  gap: clamp(2rem, 4.5vw, 4rem);
+  padding: clamp(4rem, 10vw, 8rem) clamp(16px, 2.2vw, 32px) clamp(3rem, 7vw, 6rem);
   transform: translate3d(0, 24px, 0);
   opacity: 0;
   transition:
@@ -196,7 +188,7 @@ onBeforeUnmount(() => {
   width: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: clamp(2.5rem, 6vw, 4rem);
+  gap: clamp(2.5rem, 5vw, 5rem);
   align-items: end;
 }
 
@@ -210,7 +202,7 @@ onBeforeUnmount(() => {
 .site-footer__secondary {
   display: flex;
   flex-direction: column;
-  gap: clamp(1.75rem, 4vw, 3rem);
+  gap: clamp(1.75rem, 3.6vw, 3.5rem);
 }
 
 .site-footer__text {
@@ -228,7 +220,7 @@ onBeforeUnmount(() => {
 }
 
 .site-footer__title {
-  font-size: clamp(2.1rem, 5.6vw, 4rem);
+  font-size: clamp(2.2rem, 3.2vw, 5.2rem);
   line-height: 1.02;
   margin: 0;
   text-transform: uppercase;
@@ -238,7 +230,7 @@ onBeforeUnmount(() => {
 .site-footer__copy {
   margin: 0;
   max-width: 34rem;
-  font-size: clamp(1rem, 2.3vw, 1.25rem);
+  font-size: clamp(1.08rem, 1rem + 0.35vw, 1.65rem);
   line-height: 1.7;
   opacity: 0.88;
 }
@@ -268,7 +260,7 @@ onBeforeUnmount(() => {
 
 .site-footer__label {
   text-transform: uppercase;
-  font-size: 0.7rem;
+  font-size: clamp(0.72rem, 0.42vw, 0.88rem);
   margin: 0;
   opacity: 0.8;
 }
@@ -276,7 +268,7 @@ onBeforeUnmount(() => {
 .site-footer__link {
   color: inherit;
   text-decoration: none;
-  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  font-size: clamp(1rem, 0.85rem + 0.35vw, 1.35rem);
   opacity: 0.88;
   display: inline-flex;
   align-items: center;
@@ -320,7 +312,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  font-size: 0.85rem;
+  font-size: clamp(0.9rem, 0.78rem + 0.24vw, 1.1rem);
   opacity: 0.8;
 }
 
@@ -394,6 +386,36 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
+@media (min-width: 1440px) {
+  .site-footer__content {
+    padding: clamp(5rem, 10vw, 9rem) clamp(32px, 3vw, 64px) clamp(4rem, 6vw, 7rem);
+    gap: clamp(3rem, 4vw, 5rem);
+  }
+
+  .site-footer__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(3rem, 4.5vw, 6rem);
+  }
+
+  .site-footer__text {
+    max-width: 54rem;
+    gap: clamp(1.25rem, 1.5vw, 2rem);
+  }
+
+  .site-footer__title {
+    font-size: clamp(4rem, 4.8vw, 8rem);
+  }
+
+  .site-footer__copy {
+    max-width: 42rem;
+    font-size: clamp(1.5rem, 1.15rem + 0.85vw, 2.4rem);
+  }
+
+  .site-footer__links {
+    gap: clamp(2rem, 3vw, 3.2rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-footer__content {
     transition: none;
@@ -429,6 +451,41 @@ onBeforeUnmount(() => {
 @media (min-width: 1024px) {
   .site-footer {
     min-height: 80vh;
+  }
+
+  .site-footer__grid {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .site-footer__primary,
+  .site-footer__secondary,
+  .site-footer__text,
+  .site-footer__link-group,
+  .site-footer__link-list,
+  .site-footer__legal {
+    align-items: center;
+  }
+
+  .site-footer__cta {
+    justify-content: center;
+  }
+
+  .site-footer__title {
+    font-size: clamp(3.4rem, 4.4vw, 6.8rem);
+  }
+
+  .site-footer__copy {
+    font-size: clamp(1.35rem, 1.05rem + 0.65vw, 2.2rem);
+  }
+
+  .site-footer__links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-items: center;
+    align-items: start;
+    column-gap: clamp(2rem, 4vw, 4rem);
   }
 
   .site-footer__content {
