@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   const projectId = env.VITE_SANITY_PROJECT_ID ?? "5x33ctz8";
   const dataset = env.VITE_SANITY_DATASET ?? "production";
   const apiVersion = "2023-10-01";
-  const token = env.SANITY_TOKEN ?? env.VITE_SANITY_TOKEN;
+  const token = env.SANITY_TOKEN;
   const apiHost = token ? "api.sanity.io" : "apicdn.sanity.io";
 
   return {

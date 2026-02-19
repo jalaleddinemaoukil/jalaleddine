@@ -25,6 +25,15 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Lint (if present)
+        run: npm run lint --if-present
+
+      - name: Typecheck (if present)
+        run: npm run typecheck --if-present
+
+      - name: Tests (if present)
+        run: npm test --if-present
+
       - name: Build
         run: npm run build
 

@@ -1,20 +1,26 @@
 ﻿const SANITY_PROJECT_ID = import.meta.env.VITE_SANITY_PROJECT_ID ?? "5x33ctz8";
 const SANITY_DATASET = import.meta.env.VITE_SANITY_DATASET ?? "production";
 const SANITY_API_VERSION = "2023-10-01";
-const SANITY_TOKEN = import.meta.env.VITE_SANITY_TOKEN;
 const USE_PROXY =
   !import.meta.env.SSR &&
   String(import.meta.env.VITE_SANITY_USE_PROXY ?? "true").toLowerCase() !== "false";
 
+const SANITY_QUERIES = {
+  homeWork:
+    '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,client,category,"src":videoSrc.asset->url,"bg":bgSrc.asset->url}',
+  worksGallery:
+    '*[_type=="work"]|order(_createdAt desc){_id,title,alt,"image":bgSrc.asset->url,"video":videoSrc.asset->url}',
+};
+
 const queryCache = new Map();
 
-const fetchSanity = async (query) => {
+const fetchSanity = async (queryKey) => {
+  const query = SANITY_QUERIES[queryKey];
   if (!query) return [];
-  if (queryCache.has(query)) return queryCache.get(query);
+  if (queryCache.has(queryKey)) return queryCache.get(queryKey);
 
   const encodedQuery = encodeURIComponent(query);
-  const apiHost = SANITY_TOKEN ? "api.sanity.io" : "apicdn.sanity.io";
-  const proxyUrl = `/api/sanity?query=${encodedQuery}`;
+  const apiHost = "apicdn.sanity.io";
   const directUrl = `https://${SANITY_PROJECT_ID}.${apiHost}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`;
   const queryUrl = USE_PROXY
     ? `/api/sanity?query=${encodedQuery}`
@@ -28,22 +34,12 @@ const fetchSanity = async (query) => {
 
   const request = (async () => {
     try {
-      const response = await fetch(
-        queryUrl,
-        !USE_PROXY && SANITY_TOKEN
-          ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
-          : undefined
-      );
+      const response = await fetch(queryUrl);
       const parsed = await parseResponse(response);
       if (parsed) return parsed;
 
       if (USE_PROXY) {
-        const directResponse = await fetch(
-          directUrl,
-          SANITY_TOKEN
-            ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
-            : undefined
-        );
+        const directResponse = await fetch(directUrl);
         const directParsed = await parseResponse(directResponse);
         if (directParsed) return directParsed;
       }
@@ -52,12 +48,7 @@ const fetchSanity = async (query) => {
     } catch {
       if (USE_PROXY) {
         try {
-          const directResponse = await fetch(
-            directUrl,
-            SANITY_TOKEN
-              ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
-              : undefined
-          );
+          const directResponse = await fetch(directUrl);
           const directParsed = await parseResponse(directResponse);
           if (directParsed) return directParsed;
         } catch {
@@ -68,21 +59,17 @@ const fetchSanity = async (query) => {
     }
   })();
 
-  queryCache.set(query, request);
+  queryCache.set(queryKey, request);
   return request;
 };
 
 export const fetchHomeWorkItems = async () => {
-  const workQuery =
-    '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,client,category,"src":videoSrc.asset->url,"bg":bgSrc.asset->url}';
-  const result = await fetchSanity(workQuery);
+  const result = await fetchSanity("homeWork");
   return result.filter((item) => item?.bg && item?.title);
 };
 
 export const fetchWorksItems = async () => {
-  const galleryQuery =
-    '*[_type=="work"]|order(_createdAt desc){_id,title,alt,"image":bgSrc.asset->url,"video":videoSrc.asset->url}';
-  const result = await fetchSanity(galleryQuery);
+  const result = await fetchSanity("worksGallery");
   return result.filter((item) => item?.image || item?.video);
 };
 

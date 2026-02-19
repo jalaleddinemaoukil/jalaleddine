@@ -5,7 +5,7 @@ const metaDescription =
 const metaKeywords =
   "Jalal Eddine Maoukil, Full Stack Developer Morocco, Software Engineer Rabat, Web Designer Morocco, Web Developer Casablanca, Front-end Developer Tangier, Freelance Developer Morocco";
 
-const ogImageUrl = new URL("/images/profile.webp", siteUrl).toString();
+const ogImageUrl = new URL("/website%20area.png", siteUrl).toString();
 
 const structuredData = {
   "@context": "https://schema.org",
