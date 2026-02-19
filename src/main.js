@@ -108,9 +108,26 @@ export const createApp = ViteSSG(
       }
 
       router.afterEach((to) => {
-        if (!to.hash) {
+        const forceScrollTop = () => {
           window.__lenis?.scrollTo?.(0, { immediate: true, force: true });
           window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        };
+
+        if (!to.hash) {
+          const activeElement = document.activeElement;
+          if (activeElement instanceof HTMLElement) {
+            activeElement.blur();
+          }
+
+          forceScrollTop();
+          requestAnimationFrame(forceScrollTop);
+          window.setTimeout(forceScrollTop, 90);
+        } else {
+          window.requestAnimationFrame(() => {
+            window.__lenis?.resize?.();
+          });
         }
 
         requestAnimationFrame(() => {
