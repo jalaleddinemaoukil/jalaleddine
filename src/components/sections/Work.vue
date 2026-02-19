@@ -18,7 +18,6 @@
         @pointerenter="handleItemPointerEnter(idx, item, $event)"
         @pointermove="handlePointerMove"
       >
-        <!-- Order number -->
         <div class="work__item-client">
           <div class="slide-inner">
             <span class="slide-text slide-text--a">({{ formatOrder(idx) }})</span>
@@ -33,7 +32,6 @@
           </div>
         </div>
 
-        <!-- Desktop CTA -->
         <div class="work__item-cta work__item-cta--desktop">
           <div class="slide-inner">
             <span class="slide-text slide-text--a">View Live</span>
@@ -41,7 +39,6 @@
           </div>
         </div>
 
-        <!-- Mobile thumbnail -->
         <div
           class="work__item-thumb"
           :style="{ backgroundImage: `url(${item.bg || item.image})` }"
@@ -87,14 +84,6 @@ const canUseHoverPreview = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(hover: hover) and (pointer: fine)')?.matches
 
-/* ==========================================================
-   PHYSICS SYSTEM
-   – lerp 0.08 → 0.13 (less drag, tighter tracking)
-   – offsets applied in ONE place only (updateMouse)
-   – rAF loop runs continuously while visible to avoid
-     restart-stutter on fast mouse re-entries
-========================================================== */
-
 const OFFSET_X = 24
 const OFFSET_Y = -140
 const LERP     = 0.13
@@ -105,7 +94,6 @@ let prev    = { x: 0, y: 0 }
 let rafId   = null
 let looping = false
 
-// Single source of truth for offset so enter & move stay in sync
 function updateMouse(clientX, clientY) {
   mouse.x = clientX + OFFSET_X
   mouse.y = clientY + OFFSET_Y
@@ -151,10 +139,6 @@ function loop() {
   rafId = requestAnimationFrame(loop)
 }
 
-/* ==========================================================
-   EVENT HANDLERS
-========================================================== */
-
 function handlePointerMove(e) {
   if (!canUseHoverPreview()) return
   updateMouse(e.clientX, e.clientY)
@@ -167,7 +151,6 @@ function handleItemPointerEnter(index, item, e) {
   const imageUrl = item?.bg || item?.image || ''
   if (!imageUrl) return
 
-  // Snap current position to match mouse immediately — no jump
   updateMouse(e.clientX, e.clientY)
   current.x = mouse.x
   current.y = mouse.y
@@ -202,9 +185,7 @@ function handleItemClick(href, e) {
 
 const formatOrder = i => String(i + 1).padStart(2, '0')
 
-/* ==========================================================
-   LIFECYCLE
-========================================================== */
+
 
 onMounted(() => {
   if (!canUseHoverPreview()) return
@@ -213,7 +194,6 @@ onMounted(() => {
   window.addEventListener('wheel',     handleViewportScroll, { passive: true })
   window.addEventListener('touchmove', handleViewportScroll, { passive: true })
 
-  // Preload first 6 images on idle
   const preload = () => {
     items.value
       .map(item => item?.bg || item?.image)
@@ -246,10 +226,6 @@ onBeforeUnmount(() => {
   padding: 0;
 }
 
-/* ==========================================================
-   SECTION
-========================================================== */
-
 .work {
   position: relative;
   z-index: 1;
@@ -260,10 +236,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
   padding: clamp(64px, 7vw, 100px) clamp(32px, 4vw, 64px);
 }
-
-/* ==========================================================
-   HEADER
-========================================================== */
 
 .work__top {
   position: relative;
@@ -278,10 +250,6 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
-/* ==========================================================
-   LIST
-========================================================== */
-
 .work__list {
   position: relative;
   z-index: 3;
@@ -289,10 +257,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
-
-/* ==========================================================
-   ROW
-========================================================== */
 
 .work__item {
   display: flex;
@@ -303,10 +267,6 @@ onBeforeUnmount(() => {
   color: #fff;
   position: relative;
 }
-
-/* ==========================================================
-   ORDER NUMBER
-========================================================== */
 
 .work__item-client {
   position: relative;
@@ -319,9 +279,6 @@ onBeforeUnmount(() => {
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* ==========================================================
-   TITLE
-========================================================== */
 
 .work__item-title-wrap {
   position: relative;
@@ -357,10 +314,6 @@ onBeforeUnmount(() => {
 .work__item:hover .work__item-title--a { transform: translateY(-100%); }
 .work__item:hover .work__item-title--b { transform: translateY(0%); }
 
-/* ==========================================================
-   CTA
-========================================================== */
-
 .work__item-cta {
   position: relative;
   z-index: 4;
@@ -368,13 +321,6 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: flex-end;
 }
-
-/* ==========================================================
-   HOVER REVEAL
-   – No clip-path animation (triggers paint every frame)
-   – Reveal/hide via opacity + scale only (compositor-only)
-   – will-change limited to transform + opacity
-========================================================== */
 
 .hover-reveal {
   position: fixed;
@@ -390,7 +336,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
 
   opacity: 0;
-  /* scale(0.92) when hidden → scale(1) when visible, no clip-path */
   transform: translate3d(0, 0, 0) scale(0.92);
   transition:
     opacity 0.18s ease,
@@ -403,7 +348,6 @@ onBeforeUnmount(() => {
 
 .hover-reveal.is-visible {
   opacity: 1;
-  /* JS overrides transform; this baseline just ensures it's visible */
   transform: translate3d(0, 0, 0) scale(1);
 }
 
@@ -417,7 +361,6 @@ onBeforeUnmount(() => {
   height: 100%;
   background-size: cover;
   background-position: center center;
-  /* Subtle inner scale for depth — CSS only, no JS needed */
   transform: scale(1.04);
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
@@ -428,9 +371,6 @@ onBeforeUnmount(() => {
   transform: scale(1);
 }
 
-/* ==========================================================
-   SLIDE TEXT
-========================================================== */
 
 .slide-inner {
   position: relative;
@@ -451,13 +391,9 @@ onBeforeUnmount(() => {
 .work__item:hover .slide-text--a { transform: translateY(-100%); }
 .work__item:hover .slide-text--b { transform: translateY(0%); }
 
-/* ==========================================================
-   MOBILE THUMBNAIL
-   Shown on touch devices in place of the hover-reveal
-========================================================== */
 
 .work__item-thumb {
-  display: none; /* hidden on desktop */
+  display: none; 
   width: clamp(64px, 18vw, 96px);
   aspect-ratio: 16 / 10;
   border-radius: 8px;
@@ -469,9 +405,6 @@ onBeforeUnmount(() => {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* ==========================================================
-   REDUCED MOTION
-========================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .hover-reveal {
@@ -484,33 +417,25 @@ onBeforeUnmount(() => {
   }
 }
 
-/* ==========================================================
-   MOBILE — swap hover-reveal for inline thumbnail
-========================================================== */
 
 @media (hover: none), (pointer: coarse) {
-  /* Show thumbnail, hide desktop CTA */
   .work__item-thumb        { display: block; }
   .work__item-cta--desktop { display: none; }
 
-  /* Tighten row padding on small screens */
   .work__item {
     padding: clamp(20px, 5vw, 36px) 0;
     gap: 12px;
   }
 
-  /* Shrink order number column */
   .work__item-client {
     width: clamp(36px, 8vw, 56px);
   }
 
-  /* Slight dim → full opacity on active (tap feedback) */
   .work__item:active .work__item-thumb {
     opacity: 1;
     transform: scale(0.97);
   }
 
-  /* Hover-reveal panel is never shown on touch */
   .hover-reveal { display: none; }
 }
 </style>

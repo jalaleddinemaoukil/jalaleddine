@@ -57,7 +57,7 @@
 
             <div class="site-footer__link-group">
               <RevealText tag="p" class="site-footer__label" :scroll="true" splitReveal="words">
-                Social
+                Socials
               </RevealText>
               <div class="site-footer__link-list">
                
