@@ -75,17 +75,36 @@ export const createApp = ViteSSG(
     if (isClient) {
       initLenis();
 
+      const runSanityPrefetch = () => {
+        const path = window.location.pathname;
+
+        if (path !== "/") {
+          prefetchHomeWorkItems();
+        }
+
+        if (path !== "/works") {
+          prefetchWorksItems();
+        }
+      };
+
       const prefetchSanity = () => {
-        prefetchHomeWorkItems();
-        prefetchWorksItems();
+        const schedule = () => {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(runSanityPrefetch, { timeout: 3000 });
+          } else {
+            window.setTimeout(runSanityPrefetch, 1200);
+          }
+        };
+
+        if (document.readyState === "complete") {
+          schedule();
+        } else {
+          window.addEventListener("load", schedule, { once: true });
+        }
       };
 
       if (typeof window !== "undefined") {
-        if ("requestIdleCallback" in window) {
-          window.requestIdleCallback(prefetchSanity, { timeout: 2000 });
-        } else {
-          window.setTimeout(prefetchSanity, 250);
-        }
+        prefetchSanity();
       }
 
       router.afterEach((to) => {

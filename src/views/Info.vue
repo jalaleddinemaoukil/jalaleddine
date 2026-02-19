@@ -10,44 +10,27 @@
       <div class="info-split__grid">
         <aside class="info-media" aria-label="Profile visual">
           <picture class="info-media__picture">
-            <img
-              class="info-media__img"
-              :src="aboutImage"
-              :srcset="imageSrcset"
-              sizes="(max-width: 991px) 100vw, 42vw"
-              width="1200"
-              height="1500"
-              loading="eager"
-              fetchpriority="high"
-              decoding="async"
-              alt="Jalal Eddine Maoukil portrait"
-            />
+            <img class="info-media__img" :src="aboutImage" :srcset="imageSrcset" sizes="(max-width: 991px) 100vw, 42vw"
+              width="1200" height="1500" loading="eager" fetchpriority="high" decoding="async"
+              alt="Jalal Eddine Maoukil portrait" />
           </picture>
         </aside>
 
         <div class="info-content">
-          <section
-            ref="truthSectionRef"
-            class="info-block info-block--truth"
-            aria-labelledby="truth-title"
-          >
-            <RevealText
-              tag="h2"
-              id="truth-title"
-              customClass="info-title"
-              :scroll="true"
-              splitReveal="lines"
-            >
+          <section ref="truthSectionRef" class="info-block info-block--truth" aria-labelledby="truth-title">
+            <RevealText tag="h2" id="truth-title" customClass="info-title" :scroll="true" splitReveal="lines">
               What I Do
             </RevealText>
             <div ref="truthProseRef" class="info-prose info-truth-prose">
               <RevealText tag="p" :scroll="true" splitReveal="lines">
-                I build websites and web applications that actually work under pressure.
-                Fast load times. Clean code. Systems that scale without falling apart when traffic picks up.
+                I build websites and web applications that don't break when it matters.
+                Fast. Functional. Built to scale. Whether you need a client-facing site or a custom web app, I handle
+                everything from design to deployment.
               </RevealText>
               <p>
-                I focus on the details most people skip: performance optimization, accessible design,
-                and making sure everything from typography to database queries is intentional.
+                I care about the details most developers skip. Performance optimization that actually moves the needle.
+                Typography that sets the right tone. Database architecture that won't slow you down six months from now.
+
               </p>
               <p>My design philosophy? Keep it minimal. Keep it functional. Make it feel effortless.</p>
             </div>
@@ -90,7 +73,8 @@
               Stack
             </RevealText>
             <p class="info-stack-inline">
-              Built with React, Vue.js, Framer, TailwindCSS, GSAP, Node.js, TypeScript, Azure, PostgreSQL, and Claude AI.
+              React, Vue.js, Framer, TailwindCSS, GSAP, Node.js, TypeScript, Azure, PostgreSQL, and Claude
+              AI.
             </p>
             <ul class="info-stack-list" aria-label="Technology stack">
               <li>React</li>
@@ -104,7 +88,7 @@
               <li>PostgreSQL</li>
               <li>Claude AI</li>
             </ul>
-          </section>         
+          </section>
         </div>
       </div>
     </section>
@@ -515,23 +499,19 @@ onBeforeUnmount(() => {
     opacity: 0.14;
     mix-blend-mode: soft-light;
     background:
-      repeating-linear-gradient(
-        0deg,
+      repeating-linear-gradient(0deg,
         rgba(237, 237, 237, 0.024) 0px,
         rgba(237, 237, 237, 0.024) 1px,
         transparent 1px,
-        transparent 4px
-      ),
-      repeating-linear-gradient(
-        90deg,
+        transparent 4px),
+      repeating-linear-gradient(90deg,
         rgba(237, 237, 237, 0.02) 0px,
         rgba(237, 237, 237, 0.02) 1px,
         transparent 1px,
-        transparent 5px
-      );
+        transparent 5px);
   }
 
-  .info-page > * {
+  .info-page>* {
     position: relative;
     z-index: 1;
   }
@@ -859,23 +839,19 @@ onBeforeUnmount(() => {
     opacity: 0.18;
     mix-blend-mode: soft-light;
     background:
-      repeating-linear-gradient(
-        0deg,
+      repeating-linear-gradient(0deg,
         rgba(237, 237, 237, 0.025) 0px,
         rgba(237, 237, 237, 0.025) 1px,
         transparent 1px,
-        transparent 4px
-      ),
-      repeating-linear-gradient(
-        90deg,
+        transparent 4px),
+      repeating-linear-gradient(90deg,
         rgba(237, 237, 237, 0.018) 0px,
         rgba(237, 237, 237, 0.018) 1px,
         transparent 1px,
-        transparent 5px
-      );
+        transparent 5px);
   }
 
-  .info-page > * {
+  .info-page>* {
     position: relative;
     z-index: 1;
   }
@@ -1279,7 +1255,6 @@ onBeforeUnmount(() => {
 
 .info-media__img {
   display: block !important;
-  vertical-align: top;
   box-shadow: none !important;
 }
 

@@ -67,7 +67,7 @@ const setViewportHeight = () => {
 let cleanupFns = [];
 let rafId = null;
 
-function initTrail(container) {
+function initTrail(container, excludedElements = []) {
   const isMobile =
     /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
     window.innerWidth <= 768;
@@ -111,6 +111,13 @@ function initTrail(container) {
     const r = container.getBoundingClientRect();
     return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
   };
+
+  const isInExcludedArea = (x, y) =>
+    excludedElements.some((element) => {
+      if (!element) return false;
+      const rect = element.getBoundingClientRect();
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    });
 
   const hasMovedEnough = () =>
     Math.hypot(mouseX - lastMouseX, mouseY - lastMouseY) > config.mouseThreshold;
@@ -156,7 +163,7 @@ function initTrail(container) {
   };
 
   const createTrailImage = () => {
-    if (!isCursorInContainer) return;
+    if (!isCursorInContainer || isInExcludedArea(mouseX, mouseY)) return;
     if ((isMoving || isTouching) && hasMovedEnough() && hasMovedAtAll()) {
       lastMouseX = mouseX;
       lastMouseY = mouseY;
@@ -168,6 +175,7 @@ function initTrail(container) {
 
   const createTouchTrailImage = () => {
     if (!isCursorInContainer || !isTouching || !hasMovedAtAll()) return;
+    if (isInExcludedArea(mouseX, mouseY)) return;
     const now = Date.now();
     if (now - lastTouchImageTime < config.touchImageInterval) return;
     lastTouchImageTime = now;
@@ -269,7 +277,8 @@ function initTrail(container) {
 onMounted(() => {
   setViewportHeight();
   window.addEventListener("resize", setViewportHeight, { passive: true });
-  cleanupFns.push(initTrail(heroRef.value));
+  const headingElement = heroRef.value?.querySelector(".hero__heading");
+  cleanupFns.push(initTrail(heroRef.value, [headingElement, ctaMoverRef.value]));
 });
 
 onBeforeUnmount(() => {
@@ -361,14 +370,14 @@ onBeforeUnmount(() => {
   --color-ink: var(--color-white);
 }
 
-/* Trail images are injected dynamically so must use :global */
+
 :global(.trail__img) {
   position: absolute;
   object-fit: cover;
   transform-origin: center;
   pointer-events: none;
   will-change: transform;
-  z-index: 12;
+  z-index: 1;
 }
 
 @media (min-width: 768px) {

@@ -14,9 +14,17 @@ const fetchSanity = async (query) => {
 
   const encodedQuery = encodeURIComponent(query);
   const apiHost = SANITY_TOKEN ? "api.sanity.io" : "apicdn.sanity.io";
+  const proxyUrl = `/api/sanity?query=${encodedQuery}`;
+  const directUrl = `https://${SANITY_PROJECT_ID}.${apiHost}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`;
   const queryUrl = USE_PROXY
     ? `/api/sanity?query=${encodedQuery}`
-    : `https://${SANITY_PROJECT_ID}.${apiHost}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`;
+    : directUrl;
+
+  const parseResponse = async (response) => {
+    if (!response.ok) return null;
+    const data = await response.json();
+    return Array.isArray(data?.result) ? data.result : [];
+  };
 
   const request = (async () => {
     try {
@@ -26,10 +34,36 @@ const fetchSanity = async (query) => {
           ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
           : undefined
       );
-      if (!response.ok) return [];
-      const data = await response.json();
-      return Array.isArray(data?.result) ? data.result : [];
+      const parsed = await parseResponse(response);
+      if (parsed) return parsed;
+
+      if (USE_PROXY) {
+        const directResponse = await fetch(
+          directUrl,
+          SANITY_TOKEN
+            ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
+            : undefined
+        );
+        const directParsed = await parseResponse(directResponse);
+        if (directParsed) return directParsed;
+      }
+
+      return [];
     } catch {
+      if (USE_PROXY) {
+        try {
+          const directResponse = await fetch(
+            directUrl,
+            SANITY_TOKEN
+              ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } }
+              : undefined
+          );
+          const directParsed = await parseResponse(directResponse);
+          if (directParsed) return directParsed;
+        } catch {
+          // Fall through to empty result.
+        }
+      }
       return [];
     }
   })();
