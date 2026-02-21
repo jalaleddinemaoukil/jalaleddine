@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const dataset = env.VITE_SANITY_DATASET ?? "production";
   const apiVersion = "2023-10-01";
   const token = env.SANITY_TOKEN;
-  const apiHost = token ? "api.sanity.io" : "apicdn.sanity.io";
+  const apiHost = env.VITE_SANITY_API_HOST ?? env.SANITY_API_HOST ?? "api.sanity.io";
 
   return {
     plugins: [vue()],

@@ -1,36 +1,25 @@
 <template>
-  <footer
-    ref="footerRef"
-    id="footer"
-    class="site-footer"
-    :class="['site-footer--dark', { 'is-visible': isVisible }]"
-  >
+  <footer ref="footerRef" id="footer" class="site-footer" :class="['site-footer--dark', { 'is-visible': isVisible }]">
     <div class="site-footer__overlay" aria-hidden="true"></div>
     <div class="shell site-footer__content">
       <div class="site-footer__grid">
         <div class="site-footer__primary">
           <div class="site-footer__text">
-            <RevealText tag="h2" class="site-footer__title" :scroll="true" splitReveal="lines">
-              Your website should work as hard as you do.
-            </RevealText>
+            <h2 class="site-footer__title">
+              <RevealText tag="span" :scroll="true" splitReveal="lines">
+                Your website should
+                work as hard as you do.
+              </RevealText>
+            </h2>
             <RevealText tag="p" class="site-footer__copy" :scroll="true" splitReveal="lines">
               Let's build something fast, scalable, and actually reliable.
             </RevealText>
           </div>
 
           <div class="site-footer__cta">
-            <Button
-              tag="a"
-              href="#"
-              :data-mailto="mailtoEncoded"
-              width="min(100%, 420px)"
-              height="clamp(56px, 4vw, 80px)"
-              fontSize="clamp(14px, 1vw, 19px)"
-              paddingX="clamp(24px, 2vw, 46px)"
-              paddingY="0px"
-              fontWeight="700"
-              letterSpacing="0.08em"
-            >
+            <Button tag="a" href="#" :data-mailto="mailtoEncoded" width="min(100%, 420px)"
+              height="clamp(56px, 4vw, 80px)" fontSize="clamp(14px, 1vw, 19px)" paddingX="clamp(24px, 2vw, 46px)"
+              paddingY="0px" fontWeight="700" letterSpacing="0.08em">
               Start a Project
             </Button>
           </div>
@@ -60,19 +49,38 @@
                 Socials
               </RevealText>
               <div class="site-footer__link-list">
-               
-                <a class="site-footer__link" href="https://www.linkedin.com/in/jalal-eddine-maoukil/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <a class="site-footer__link" href="https://www.linkedin.com/in/jalal-eddine-maoukil/" target="_blank"
+                  rel="noopener noreferrer" aria-label="LinkedIn">
                   <RevealText tag="span" :scroll="true" splitReveal="words">LinkedIn</RevealText>
                 </a>
-                <a class="site-footer__link" href="https://github.com/jalaleddinemaoukil" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                <a class="site-footer__link" href="https://github.com/jalaleddinemaoukil" target="_blank"
+                  rel="noopener noreferrer" aria-label="GitHub">
                   <RevealText tag="span" :scroll="true" splitReveal="words">GitHub</RevealText>
                 </a>
-                 <a class="site-footer__link" href="https://me.muz.li/jalaledn" target="_blank" rel="noopener noreferrer" aria-label="Muzli">
+                <a class="site-footer__link" href="https://me.muz.li/jalaledn" target="_blank" rel="noopener noreferrer"
+                  aria-label="Muzli">
                   <RevealText tag="span" :scroll="true" splitReveal="words">Muzli</RevealText>
                 </a>
               </div>
             </div>
           </div>
+
+          <article class="footer-moment" :class="{ 'is-fallback': footerGifFailed || isReducedMotion }" aria-hidden="true">
+            <img
+              v-if="!footerGifFailed && !isReducedMotion"
+              class="footer-moment__media"
+              :src="footerGifSrc"
+              alt="Playful otter typing quickly"
+              loading="lazy"
+              decoding="async"
+              @error="footerGifFailed = true"
+            />
+            <div v-else class="footer-moment__fallback">
+              <span class="footer-moment__emoji">✦</span>
+              <p class="footer-moment__fallback-text">Still shipping when others sleep.</p>
+            </div>
+            <p class="footer-moment__caption">Still shipping at 2:17 AM.</p>
+          </article>
 
           <div class="site-footer__legal">
             <RevealText tag="p" :scroll="true" splitReveal="words">
@@ -96,6 +104,9 @@ import Button from "../base/Button.vue";
 
 const footerRef = ref(null);
 const isVisible = ref(false);
+const isReducedMotion = ref(false);
+const footerGifFailed = ref(false);
+const footerGifSrc = "/images/chaos-otter.gif";
 let footerObserver = null;
 const mailtoEncoded =
   "&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#97;&#108;&#97;&#108;&#101;&#100;&#100;&#105;&#110;&#101;&#109;&#97;&#111;&#117;&#107;&#105;&#108;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;";
@@ -104,11 +115,13 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-
 onMounted(() => {
+  isReducedMotion.value = prefersReducedMotion();
+
   if (prefersReducedMotion()) {
     isVisible.value = true;
   }
+
   if (footerRef.value) {
     footerObserver = new IntersectionObserver(
       (entries) => {
@@ -212,19 +225,15 @@ onBeforeUnmount(() => {
   gap: 1.25rem;
 }
 
-.site-footer__eyebrow {
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  margin: 0;
-  opacity: 0.75;
-}
-
 .site-footer__title {
   font-size: clamp(2.2rem, 3.2vw, 5.2rem);
-  line-height: 1.02;
+  line-height: 1.1;
   margin: 0;
   text-transform: uppercase;
   text-wrap: balance;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
 }
 
 .site-footer__copy {
@@ -314,6 +323,57 @@ onBeforeUnmount(() => {
   gap: 0.35rem;
   font-size: clamp(0.9rem, 0.78rem + 0.24vw, 1.1rem);
   opacity: 0.8;
+}
+
+.footer-moment {
+  width: min(100%, 360px);
+  align-self: flex-start;
+  border-radius: 16px;
+  overflow: clip;
+  border: 1px solid color-mix(in srgb, var(--color-white) 16%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 86%, transparent);
+}
+
+.footer-moment__media {
+  width: 100%;
+  display: block;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  filter: saturate(0.84) contrast(1.02) brightness(0.86);
+}
+
+.footer-moment__fallback {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-content: center;
+  gap: 0.55rem;
+  padding: 1.1rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--color-bg) 80%, var(--color-ink) 20%);
+}
+
+.footer-moment__emoji {
+  font-size: clamp(1.4rem, 1.1rem + 0.8vw, 2rem);
+  line-height: 1;
+}
+
+.footer-moment__fallback-text {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: clamp(0.68rem, 0.6rem + 0.35vw, 0.9rem);
+  opacity: 0.82;
+}
+
+.footer-moment__caption {
+  margin: 0;
+  padding: 0.7rem 0.82rem 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: clamp(0.62rem, 0.52rem + 0.28vw, 0.78rem);
+  border-top: 1px solid color-mix(in srgb, var(--color-white) 10%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
 }
 
 .site-footer__legal-link {
@@ -422,6 +482,7 @@ onBeforeUnmount(() => {
     transform: none;
     opacity: 1;
   }
+
   .site-footer__overlay {
     transition: none;
     opacity: 0;
@@ -438,6 +499,10 @@ onBeforeUnmount(() => {
 @media (max-width: 640px) {
   .site-footer__content {
     padding-top: clamp(3rem, 12vw, 5rem);
+  }
+
+  .footer-moment {
+    width: min(75vw, 280px);
   }
 }
 
@@ -469,12 +534,17 @@ onBeforeUnmount(() => {
     align-items: center;
   }
 
+  .footer-moment {
+    align-self: center;
+  }
+
   .site-footer__cta {
     justify-content: center;
   }
 
   .site-footer__title {
     font-size: clamp(3.4rem, 4.4vw, 6.8rem);
+    align-items: center;
   }
 
   .site-footer__copy {

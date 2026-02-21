@@ -399,7 +399,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* Top bar */
+
 .sidenav__header {
   z-index: 1000;
   display: flex;
@@ -452,14 +452,14 @@ onBeforeUnmount(() => {
   font-weight: 400;
 }
 
-/* Brand */
+
 .sidenav__brand {
   color: var(--color-white);
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: var(--tracking-label, 0.08em);
   font-weight: 400;
-  font-size: clamp(0.9em, 2vw, 1em);
+  font-size: clamp(0.8em, 2vw, 0.9em);
   opacity: 0.95;
   text-align: right;
 }

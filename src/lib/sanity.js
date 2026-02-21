@@ -1,6 +1,7 @@
 ﻿const SANITY_PROJECT_ID = import.meta.env.VITE_SANITY_PROJECT_ID ?? "5x33ctz8";
 const SANITY_DATASET = import.meta.env.VITE_SANITY_DATASET ?? "production";
 const SANITY_API_VERSION = "2023-10-01";
+const SANITY_API_HOST = import.meta.env.VITE_SANITY_API_HOST ?? "api.sanity.io";
 const USE_PROXY =
   !import.meta.env.SSR &&
   String(import.meta.env.VITE_SANITY_USE_PROXY ?? "true").toLowerCase() !== "false";
@@ -9,10 +10,14 @@ const SANITY_QUERIES = {
   homeWork:
     '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,client,category,"src":videoSrc.asset->url,"bg":bgSrc.asset->url}',
   worksGallery:
-    '*[_type=="work"]|order(_createdAt desc){_id,title,alt,"image":bgSrc.asset->url,"video":videoSrc.asset->url}',
+    '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,"image":bgSrc.asset->url,"video":videoSrc.asset->url}',
 };
 
 const queryCache = new Map();
+
+const SANITY_HOSTS = Array.from(
+  new Set([SANITY_API_HOST, "api.sanity.io", "apicdn.sanity.io"].filter(Boolean))
+);
 
 const fetchSanity = async (queryKey) => {
   const query = SANITY_QUERIES[queryKey];
@@ -20,11 +25,13 @@ const fetchSanity = async (queryKey) => {
   if (queryCache.has(queryKey)) return queryCache.get(queryKey);
 
   const encodedQuery = encodeURIComponent(query);
-  const apiHost = "apicdn.sanity.io";
-  const directUrl = `https://${SANITY_PROJECT_ID}.${apiHost}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`;
-  const queryUrl = USE_PROXY
-    ? `/api/sanity?query=${encodedQuery}`
-    : directUrl;
+  const directUrls = SANITY_HOSTS.map(
+    (host) =>
+      `https://${SANITY_PROJECT_ID}.${host}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`
+  );
+  const queryUrls = USE_PROXY
+    ? [`/api/sanity?query=${encodedQuery}`, ...directUrls]
+    : directUrls;
 
   const parseResponse = async (response) => {
     if (!response.ok) return null;
@@ -33,30 +40,17 @@ const fetchSanity = async (queryKey) => {
   };
 
   const request = (async () => {
-    try {
-      const response = await fetch(queryUrl);
-      const parsed = await parseResponse(response);
-      if (parsed) return parsed;
-
-      if (USE_PROXY) {
-        const directResponse = await fetch(directUrl);
-        const directParsed = await parseResponse(directResponse);
-        if (directParsed) return directParsed;
+    for (const url of queryUrls) {
+      try {
+        const response = await fetch(url);
+        const parsed = await parseResponse(response);
+        if (parsed) return parsed;
+      } catch {
+        // Try next host/url.
       }
-
-      return [];
-    } catch {
-      if (USE_PROXY) {
-        try {
-          const directResponse = await fetch(directUrl);
-          const directParsed = await parseResponse(directResponse);
-          if (directParsed) return directParsed;
-        } catch {
-          // Fall through to empty result.
-        }
-      }
-      return [];
     }
+
+    return [];
   })();
 
   queryCache.set(queryKey, request);

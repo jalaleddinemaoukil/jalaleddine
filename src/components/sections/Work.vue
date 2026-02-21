@@ -14,7 +14,8 @@
           'is-dimmed': hoveredIndex !== -1 && hoveredIndex !== idx
         }"
         :href="item.href"
-        @click="handleItemClick(item.href, $event)"
+        target="_blank"
+        rel="noopener noreferrer"
         @pointerenter="handleItemPointerEnter(idx, item, $event)"
         @pointermove="handlePointerMove"
       >
@@ -65,13 +66,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
 
 const props = defineProps({
   items: { type: Array, default: () => [] }
 })
 
-const router = useRouter()
 const items = computed(() => props.items || [])
 
 const sectionRef    = ref(null)
@@ -175,12 +174,6 @@ function handleSectionPointerLeave() {
 
 function handleViewportScroll() {
   if (isRevealVisible.value) handleItemPointerLeave()
-}
-
-function handleItemClick(href, e) {
-  if (!href?.startsWith('/')) return
-  e.preventDefault()
-  router.push(href)
 }
 
 const formatOrder = i => String(i + 1).padStart(2, '0')
@@ -425,10 +418,31 @@ onBeforeUnmount(() => {
   .work__item {
     padding: clamp(20px, 5vw, 36px) 0;
     gap: 12px;
+    align-items: flex-start;
   }
 
   .work__item-client {
     width: clamp(36px, 8vw, 56px);
+  }
+
+  .work__item-title-wrap {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .work__item-title-inner {
+    width: 100%;
+  }
+
+  .work__item-title {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.08;
+  }
+
+  .work__item-title--b,
+  .work__item .slide-text--b {
+    display: none;
   }
 
   .work__item:active .work__item-thumb {

@@ -1,21 +1,16 @@
 <template>
   <main class="info-page">
-    <section class="info-hero" aria-labelledby="about-hero-title">
-      <div class="shell info-hero__inner">
-        <h1 id="about-hero-title" class="info-hero__title">ABOUT ME</h1>
-      </div>
-    </section>
+    <Section
+      class="info-hero-section"
+      line-one="WHO IS"
+      line-three-label="About me"
+      line-four="JALAL EDDINE?"
+      :slide-duration="1800"
+      :images="aboutHeroImages"
+    />
 
     <section class="info-split" aria-label="About details">
       <div class="info-split__grid">
-        <aside class="info-media" aria-label="Profile visual">
-          <picture class="info-media__picture">
-            <img class="info-media__img" :src="aboutImage" :srcset="imageSrcset" sizes="(max-width: 991px) 100vw, 42vw"
-              width="1200" height="1500" loading="eager" fetchpriority="high" decoding="async"
-              alt="Jalal Eddine Maoukil portrait" />
-          </picture>
-        </aside>
-
         <div class="info-content">
           <section ref="truthSectionRef" class="info-block info-block--truth" aria-labelledby="truth-title">
             <RevealText tag="h2" id="truth-title" customClass="info-title" :scroll="true" splitReveal="lines">
@@ -103,19 +98,19 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useHead } from "@unhead/vue";
 import { buildHead } from "@/lib/siteMeta.js";
+import Section from "@/components/base/Section.vue";
 import RevealText from "@/components/base/RevealText.vue";
 import Footer from "@/components/sections/Footer.vue";
 import aboutImage from "@/assets/images/about-jalal-eddine-image.webp";
-import profile320 from "@/assets/images/profile-320.webp";
-import profile480 from "@/assets/images/profile-480.webp";
-import profile640 from "@/assets/images/profile-640.webp";
-import profile800 from "@/assets/images/profile-800.webp";
 
 const truthSectionRef = ref(null);
 const truthProseRef = ref(null);
 const chromeClock = ref("");
 
-const imageSrcset = `${profile320} 320w, ${profile480} 480w, ${profile640} 640w, ${profile800} 800w, ${aboutImage} 1200w`;
+const aboutHeroImages = [{
+  src: aboutImage,
+  alt: "Jalal Eddine Maoukil portrait",
+}];
 
 let truthCtx = null;
 let resizeRaf = 0;
@@ -232,13 +227,11 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .info-page {
-  position: relative;
+ 
   width: 100%;
   max-width: 100%;
   background: var(--color-white);
   color: var(--color-ink);
-  overflow-x: hidden;
-  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -276,6 +269,19 @@ onBeforeUnmount(() => {
   font-size: clamp(3rem, 13vw, 10.5rem);
 }
 
+.info-hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.2rem, 3.8vh, 2.1rem);
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: clamp(0.72rem, 0.5rem + 0.45vw, 0.9rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
 .info-mobile-chrome,
 .info-stack-inline,
 .info-mobile-section {
@@ -284,6 +290,18 @@ onBeforeUnmount(() => {
 
 .info-mobile-chrome__meta {
   display: none;
+}
+
+.info-hero-section :deep(.retro-frame) {
+  width: clamp(280px, 34vw, 560px);
+}
+
+.info-hero-section :deep(.retro-frame__slide img) {
+  width: 70%;
+  height: 90%;
+  object-fit: cover;
+  object-position: center 66%;
+  border-radius: 10%;
 }
 
 .info-split {
@@ -297,7 +315,7 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 100%;
   display: grid;
-  grid-template-columns: minmax(300px, 42vw) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 0;
 }
@@ -333,14 +351,12 @@ onBeforeUnmount(() => {
 
 .info-content {
   width: 100%;
-  min-width: 0;
-  padding: 0;
+  height: 100%;
   display: grid;
-  gap: 0;
+  gap: 30px;
 }
 
 .info-block {
-  min-height: 100vh;
   min-height: 100svh;
   display: grid;
   align-content: center;
@@ -351,7 +367,7 @@ onBeforeUnmount(() => {
 
 @supports (min-height: 100dvh) {
   .info-block {
-    min-height: 100dvh;
+    min-height: 10dvh;
   }
 }
 
@@ -598,9 +614,9 @@ onBeforeUnmount(() => {
   }
 
   .info-split__grid {
-    grid-template-columns: minmax(0, 1fr) minmax(20rem, 33vw);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
-    gap: clamp(2rem, 4vw, 4.6rem);
+    gap: 0;
     padding-inline: clamp(1.2rem, 2.1vw, 2.2rem);
   }
 
@@ -654,13 +670,6 @@ onBeforeUnmount(() => {
     border-bottom: 0;
     background: transparent !important;
     color: rgba(237, 237, 237, 0.94);
-  }
-
-  .info-block--truth {
-    grid-column: 1;
-    grid-row: 1;
-    align-self: start;
-    padding-top: clamp(1rem, 2.2vh, 1.8rem);
   }
 
   .info-title {
@@ -823,6 +832,11 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 767px) {
+  .info-hero-section :deep(.retro-frame) {
+    width: clamp(240px, 70vw, 360px);
+    aspect-ratio: 2 / 1;
+  }
+
   .info-page {
     background:
       radial-gradient(120% 80% at 50% 0%, #0c0c0c 0%, #050505 64%),

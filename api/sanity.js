@@ -2,10 +2,11 @@ const SANITY_PROJECT_ID = process.env.SANITY_PROJECT_ID || process.env.VITE_SANI
 const SANITY_DATASET = process.env.SANITY_DATASET || process.env.VITE_SANITY_DATASET || "production";
 const SANITY_API_VERSION = "2023-10-01";
 const SANITY_TOKEN = process.env.SANITY_TOKEN;
+const SANITY_API_HOST = process.env.SANITY_API_HOST || process.env.VITE_SANITY_API_HOST || "api.sanity.io";
 
 const ALLOWED_QUERIES = new Set([
   '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,client,category,"src":videoSrc.asset->url,"bg":bgSrc.asset->url}',
-  '*[_type=="work"]|order(_createdAt desc){_id,title,alt,"image":bgSrc.asset->url,"video":videoSrc.asset->url}',
+  '*[_type=="work"]|order(_createdAt desc){_id,title,description,href,alt,"image":bgSrc.asset->url,"video":videoSrc.asset->url}',
 ]);
 
 export default async function handler(req, res) {
@@ -26,20 +27,29 @@ export default async function handler(req, res) {
     return;
   }
 
-  const apiHost = SANITY_TOKEN ? "api.sanity.io" : "apicdn.sanity.io";
   const encodedQuery = encodeURIComponent(query);
-  const url = `https://${SANITY_PROJECT_ID}.${apiHost}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`;
+  const hosts = Array.from(new Set([SANITY_API_HOST, "api.sanity.io", "apicdn.sanity.io"].filter(Boolean)));
+  const urls = hosts.map(
+    (host) => `https://${SANITY_PROJECT_ID}.${host}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodedQuery}`
+  );
 
-  try {
-    const response = await fetch(
-      url,
-      SANITY_TOKEN ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } } : undefined
-    );
-    const body = await response.text();
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
-    res.setHeader("Content-Type", "application/json");
-    res.status(response.status).send(body);
-  } catch (error) {
-    res.status(500).json({ error: "Sanity proxy request failed." });
+  let lastError = null;
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(
+        url,
+        SANITY_TOKEN ? { headers: { Authorization: `Bearer ${SANITY_TOKEN}` } } : undefined
+      );
+      const body = await response.text();
+      res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+      res.setHeader("Content-Type", "application/json");
+      res.status(response.status).send(body);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  res.status(500).json({ error: "Sanity proxy request failed.", detail: String(lastError?.message || "unknown") });
 }
