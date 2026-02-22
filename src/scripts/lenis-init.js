@@ -18,8 +18,13 @@ export const initLenis = () => {
   const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
   const saveData = navigator.connection?.saveData === true;
-  const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
-  const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
+  // navigator.hardwareConcurrency and navigator.deviceMemory are spoofed by
+  // privacy-focused browsers (e.g. Brave caps hardwareConcurrency to 2),
+  // which causes these guards to falsely disable Lenis on perfectly capable
+  // desktop machines. Only apply the low-end check on touch devices where
+  // a real constraint is more likely.
+  const lowMemory = isCoarsePointer && typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 1;
+  const lowCpu = isCoarsePointer && typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 2;
 
   const shouldUseLenis = !prefersReduced && !saveData && !lowMemory && !lowCpu;
 

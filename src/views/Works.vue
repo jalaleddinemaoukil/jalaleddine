@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
   .works-showcase {
     background: var(--color-bg);
     color: var(--color-white);
-    padding-block: clamp(3.5rem, 8vw, 7rem);
+    padding-block: clamp(4rem, 8vw, 8rem);
     position: relative;
     z-index: 2;
   }
@@ -193,16 +193,15 @@ onBeforeUnmount(() => {
   .works-showcase__inner {
     display: flex;
     flex-direction: column;
-    gap: clamp(1.5rem, 2.6vw, 2.4rem);
+    gap: clamp(3rem, 5vw, 6rem);
   }
 
   .project-card {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(2.1rem, 3.4vw, 3rem);
+    grid-template-columns: 56fr 42fr;
+    gap: clamp(1.6rem, 2.8vw, 3rem);
     align-items: stretch;
-    min-height: 100svh;
-    min-height: 100dvh;
+    min-height: clamp(440px, 62vh, 840px);
   }
 
   .project-card--reverse .project-card__media {
@@ -214,7 +213,7 @@ onBeforeUnmount(() => {
   }
 
   .project-card__media {
-    min-height: 100%;
+    height: 100%;
     background: rgba(237, 237, 237, 0.03);
     border-radius: 15px;
     overflow: hidden;
@@ -224,8 +223,7 @@ onBeforeUnmount(() => {
   .project-card__video {
     width: 100%;
     height: 100%;
-    min-height: inherit;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     display: block;
   }
@@ -234,8 +232,8 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: clamp(1rem, 2vw, 1.5rem);
-    padding: clamp(1.4rem, 3vw, 2.8rem);
+    gap: clamp(0.9rem, 1.6vw, 1.5rem);
+    padding: clamp(1.6rem, 3.2vw, 3.2rem);
     background: var(--color-white);
     color: var(--color-ink);
     border-radius: 15px;
@@ -243,21 +241,20 @@ onBeforeUnmount(() => {
 
   .project-card__title {
     margin: 0;
-    font-size: clamp(1.8rem, 9.8vw, 10.2rem);
+    font-size: clamp(2rem, 3.8vw, 5rem);
     line-height: 1.05;
     text-transform: uppercase;
     letter-spacing: var(--tracking-display);
-    word-spacing: 0.05em;
+    word-spacing: 0.04em;
     color: var(--color-ink);
   }
 
   .project-card__description {
     margin: 0;
-    font-size: clamp(1.2rem, 2vw, 2.75rem);
-    line-height: 1.5;
-    word-spacing: 0.03em;
-    color: rgba(5, 5, 5, 0.9);
-    max-width: none;
+    font-size: clamp(1rem, 1.1vw, 1.32rem);
+    line-height: 1.65;
+    color: rgba(5, 5, 5, 0.75);
+    max-width: 52ch;
   }
 
   .project-card__link {
@@ -266,10 +263,11 @@ onBeforeUnmount(() => {
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: clamp(0.89rem, 0.92rem + 0.28vw, 1.1rem);
+    font-size: clamp(0.8rem, 0.85rem + 0.2vw, 1rem);
     border-bottom: 1px solid currentColor;
     padding-bottom: 0.12rem;
-    opacity: 0.9;
+    opacity: 0.75;
+    transition: opacity 0.2s ease;
   }
 
   .project-card__link:hover,
@@ -277,23 +275,38 @@ onBeforeUnmount(() => {
     opacity: 1;
   }
 
+  /* ── Tablet (992 → 768) ──────────────────────────────────────────── */
   @media (max-width: 991px) {
+    .works-showcase {
+      padding-block: clamp(3rem, 7vw, 5rem);
+    }
+
+    .works-showcase__inner {
+      gap: clamp(2.4rem, 5vw, 4rem);
+    }
+
     .project-card {
       grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto;
-    }
-
-    .project-card__content {
-      padding: clamp(1.2rem, 3.6vw, 2rem);
-    }
-
-    .project-card__description {
-      font-size: clamp(1.08rem, 0.96rem + 0.6vw, 1.35rem);
-      line-height: 1.5;
+      min-height: unset;
     }
 
     .project-card__media {
-      min-height: 0;
+      aspect-ratio: 16 / 10;
+      height: auto;
+    }
+
+    .project-card__content {
+      padding: clamp(1.4rem, 3.8vw, 2.2rem);
+    }
+
+    .project-card__title {
+      font-size: clamp(2rem, 5.2vw, 3.2rem);
+    }
+
+    .project-card__description {
+      font-size: clamp(0.95rem, 1vw + 0.3rem, 1.15rem);
+      line-height: 1.6;
+      max-width: none;
     }
 
     .project-card--reverse .project-card__media,
@@ -302,18 +315,50 @@ onBeforeUnmount(() => {
     }
   }
 
+  /* ── Mobile (767 → 480) ──────────────────────────────────────────── */
+  @media (max-width: 767px) {
+    .works-showcase__inner {
+      gap: clamp(2rem, 6vw, 3rem);
+    }
+
+    .project-card__media {
+      aspect-ratio: 4 / 3;
+    }
+
+    .project-card__title {
+      font-size: clamp(1.9rem, 6.5vw, 2.6rem);
+    }
+  }
+
+  /* ── Small mobile (≤ 479px) ─────────────────────────────────────── */
   @media (max-width: 479px) {
     .works-showcase {
       padding-block: clamp(2.4rem, 8vw, 3.2rem);
     }
 
+    .works-showcase__inner {
+      gap: clamp(1.8rem, 8vw, 2.4rem);
+    }
+
+    .project-card__media {
+      aspect-ratio: 3 / 2;
+    }
+
     .project-card__content {
-      padding: clamp(1rem, 5vw, 1.35rem);
+      padding: clamp(1.1rem, 5vw, 1.6rem);
+    }
+
+    .project-card__title {
+      font-size: clamp(1.75rem, 8vw, 2.2rem);
     }
 
     .project-card__description {
-      font-size: clamp(1rem, 0.92rem + 1vw, 1.18rem);
-      line-height: 1.45;
+      font-size: clamp(0.92rem, 0.88rem + 0.6vw, 1.05rem);
+      line-height: 1.55;
+    }
+
+    .project-card__link {
+      font-size: 0.85rem;
     }
   }
 </style>
