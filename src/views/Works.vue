@@ -79,7 +79,59 @@ import Section from "@/components/base/Section.vue";
 import Footer from "@/components/sections/Footer.vue";
 import { fetchWorksItems } from "@/lib/sanity.js";
 
-useHead(buildHead("/works", { title: "Works | Jalal Eddine Maoukil" }));
+const siteUrl = import.meta.env.VITE_PUBLIC_SITE_URL ?? "https://example.com";
+
+useHead(buildHead("/works", {
+  title: "Works & Projects | Jalal Eddine Maoukil — Full Stack Developer Morocco",
+  description:
+    "Explore the portfolio of Jalal Eddine Maoukil — a Full Stack Developer and Web Designer based in Rabat, Morocco. Hand-crafted web applications, SaaS platforms, and modern websites built with Vue.js, React, Node.js, and more.",
+  keywords:
+    "Jalal Eddine Maoukil projects, web development portfolio Morocco, Full Stack Developer portfolio, Vue.js projects, React projects, SaaS Morocco, web design portfolio Rabat, freelance developer works",
+}));
+
+useHead({
+  meta: [
+    { property: "og:type", content: "website" },
+  ],
+  script: [
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "@id": `${siteUrl}/works#page`,
+        name: "Works & Projects — Jalal Eddine Maoukil",
+        description:
+          "A curated portfolio of web applications, SaaS platforms, and websites built by Jalal Eddine Maoukil.",
+        url: `${siteUrl}/works`,
+        inLanguage: "en-US",
+        author: {
+          "@type": "Person",
+          "@id": `${siteUrl}#person`,
+          name: "Jalal Eddine Maoukil",
+          url: siteUrl,
+        },
+        breadcrumb: {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: siteUrl,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Works",
+              item: `${siteUrl}/works`,
+            },
+          ],
+        },
+      }),
+    },
+  ],
+});
 
 const route = useRoute();
 const state = route.meta?.state ?? {};
