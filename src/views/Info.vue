@@ -101,7 +101,7 @@ import { buildHead } from "@/lib/siteMeta.js";
 import Section from "@/components/base/Section.vue";
 import RevealText from "@/components/base/RevealText.vue";
 import Footer from "@/components/sections/Footer.vue";
-import aboutImage from "@/assets/images/about-jalal-eddine-image.webp";
+import aboutImage from "@/assets/images/about-jalal-eddine.webp";
 
 const truthSectionRef = ref(null);
 const truthProseRef = ref(null);
