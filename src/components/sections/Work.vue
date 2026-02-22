@@ -5,19 +5,10 @@
     </div>
 
     <nav class="work__list">
-      <a
-        v-for="(item, idx) in items"
-        :key="item._id || item.title"
-        class="work__item"
-        :class="{
-          'is-hovered': hoveredIndex === idx,
-          'is-dimmed': hoveredIndex !== -1 && hoveredIndex !== idx
-        }"
-        :href="item.href"
-        target="_blank"
-        rel="noopener noreferrer"
-        @pointerenter="handleItemPointerEnter(idx)"
-      >
+      <a v-for="(item, idx) in items" :key="item._id || item.title" class="work__item" :class="{
+        'is-hovered': hoveredIndex === idx,
+        'is-dimmed': hoveredIndex !== -1 && hoveredIndex !== idx
+      }" :href="item.href" target="_blank" rel="noopener noreferrer" @pointerenter="handleItemPointerEnter(idx)">
         <div class="work__item-client">
           <div class="slide-inner">
             <span class="slide-text slide-text--a">({{ formatOrder(idx) }})</span>
@@ -39,24 +30,16 @@
           </div>
         </div>
 
-        <div
-          class="work__item-thumb"
-          :style="{ backgroundImage: `url(${item.bg || item.image})` }"
-          aria-hidden="true"
-        />
+        <div class="work__item-thumb" :style="{ backgroundImage: `url(${item.bg || item.image})` }"
+          aria-hidden="true" />
       </a>
     </nav>
 
     <div class="link-container">
-      <Button
-        tag="a"
-        href="/works"
-        label="Learn More"
-        customClass="view-all-btn"
-        :staggerDelay="0.02"
-        :animationDuration="0.5"
-        :animationEasing="'cubic-bezier(0.22, 1, 0.36, 1)'"
-      />
+      <Button tag="a" href="/works" customClass="view-all-btn" :staggerDelay="0.02" :animationDuration="0.5"
+        :animationEasing="'cubic-bezier(0.22, 1, 0.36, 1)'">
+        Learn More
+      </Button>
     </div>
 
 
@@ -73,7 +56,7 @@ const props = defineProps({
 
 const items = computed(() => props.items || [])
 
-const sectionRef   = ref(null)
+const sectionRef = ref(null)
 const hoveredIndex = ref(-1)
 
 function handleItemPointerEnter(index) {
@@ -96,7 +79,9 @@ const formatOrder = i => String(i + 1).padStart(2, '0')
 </script>
 
 <style scoped>
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -184,11 +169,21 @@ const formatOrder = i => String(i + 1).padStart(2, '0')
   will-change: transform;
 }
 
-.work__item-title--a { transform: translateY(0%); }
-.work__item-title--b { transform: translateY(100%); }
+.work__item-title--a {
+  transform: translateY(0%);
+}
 
-.work__item:hover .work__item-title--a { transform: translateY(-100%); }
-.work__item:hover .work__item-title--b { transform: translateY(0%); }
+.work__item-title--b {
+  transform: translateY(100%);
+}
+
+.work__item:hover .work__item-title--a {
+  transform: translateY(-100%);
+}
+
+.work__item:hover .work__item-title--b {
+  transform: translateY(0%);
+}
 
 .work__item-cta {
   position: relative;
@@ -213,11 +208,21 @@ const formatOrder = i => String(i + 1).padStart(2, '0')
   will-change: transform;
 }
 
-.slide-text--a { transform: translateY(0%); }
-.slide-text--b { transform: translateY(100%); }
+.slide-text--a {
+  transform: translateY(0%);
+}
 
-.work__item:hover .slide-text--a { transform: translateY(-100%); }
-.work__item:hover .slide-text--b { transform: translateY(0%); }
+.slide-text--b {
+  transform: translateY(100%);
+}
+
+.work__item:hover .slide-text--a {
+  transform: translateY(-100%);
+}
+
+.work__item:hover .slide-text--b {
+  transform: translateY(0%);
+}
 
 
 .link-container {
@@ -237,7 +242,7 @@ const formatOrder = i => String(i + 1).padStart(2, '0')
 }
 
 .work__item-thumb {
-  display: none; 
+  display: none;
   width: clamp(64px, 18vw, 96px);
   aspect-ratio: 16 / 10;
   border-radius: 8px;
@@ -253,9 +258,15 @@ const formatOrder = i => String(i + 1).padStart(2, '0')
 
 
 
-@media (hover: none), (pointer: coarse) {
-  .work__item-thumb        { display: block; }
-  .work__item-cta--desktop { display: none; }
+@media (hover: none),
+(pointer: coarse) {
+  .work__item-thumb {
+    display: block;
+  }
+
+  .work__item-cta--desktop {
+    display: none;
+  }
 
   .work__item {
     padding: clamp(20px, 5vw, 36px) 0;
