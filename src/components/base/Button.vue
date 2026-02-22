@@ -23,7 +23,7 @@
 
 <script>
 export default {
-  name: "Button",
+  name: "BtnAnimateChars",
   props: {
     label: { type: String, default: "" },
     tag: { type: String, default: "button" },
@@ -50,7 +50,7 @@ export default {
     lift: { type: [String, Number], default: "1.3em" } // match your original
   },
   data() {
-    return { observer: null, resolvedHref: this.href };
+    return { resolvedHref: this.href };
   },
   computed: {
     hasMailto() {
@@ -84,11 +84,7 @@ export default {
     this.$nextTick(() => {
       this.applyMailtoHref();
       this.initButtonCharacterStagger();
-      this.setupMutationObserver();
     });
-  },
-  beforeUnmount() {
-    this.observer?.disconnect();
   },
   watch: {
     href(next) {
@@ -132,16 +128,6 @@ export default {
         el.appendChild(span);
       });
     },
-    setupMutationObserver() {
-      const el = this.$refs.textElement;
-      if (!el) return;
-
-      this.observer = new MutationObserver(() => {
-        this.$nextTick(() => this.initButtonCharacterStagger());
-      });
-
-      this.observer.observe(el, { childList: true, characterData: true, subtree: true });
-    },
     handleClick(event) {
       if (!this.disabled) this.$emit("click", event);
     }
@@ -151,14 +137,15 @@ export default {
 
 <style scoped>
 .btn-animate-chars {
-  /* sizing API */
-  width: var(--btn-w, fit-content);
+
+  width: fit-content;
+  min-width: var(--btn-w, 0px);
   height: var(--btn-h, auto);
   padding: var(--btn-py, 1em) var(--btn-px, 2em);
   text-transform: uppercase;
   font-size: var(--btn-fs, 1em);
   font-weight: var(--btn-fw, inherit);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--btn-ls, 0.04em);
 
   color: var(--color-ink, #000000);
   cursor: pointer;
@@ -174,6 +161,9 @@ export default {
   background: transparent;
   font-family: inherit;
   white-space: nowrap;
+  max-width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   --btn-dot-size: 0.6em;
   --btn-dot-stroke: 1.5px;
   --btn-dot-fill-scale: 0.2;
@@ -254,17 +244,23 @@ export default {
   will-change: transform;
 }
 
-.btn-animate-chars:hover [data-button-animate-chars] :deep(span) {
-  transform: translateY(calc(-1 * var(--btn-lift, 1.3em))) rotate(0.001deg);
-}
+@media (hover: hover) {
+  .btn-animate-chars:hover [data-button-animate-chars] :deep(span) {
+    transform: translateY(calc(-1 * var(--btn-lift, 1.3em))) rotate(0.001deg);
+  }
 
-.btn-animate-chars:hover .btn-animate-chars__dot {
-  transform: scale(var(--btn-dot-outline-scale-hover));
-}
+  .btn-animate-chars:hover .btn-animate-chars__dot {
+    transform: scale(var(--btn-dot-outline-scale-hover));
+  }
 
-.btn-animate-chars:hover .btn-animate-chars__dot::after {
-  transform: scale(var(--btn-dot-fill-scale-hover));
-  opacity: 1;
+  .btn-animate-chars:hover .btn-animate-chars__dot::after {
+    transform: scale(var(--btn-dot-fill-scale-hover));
+    opacity: 1;
+  }
+
+  .btn-animate-chars:hover .btn-animate-chars__bg {
+    inset: 0.125em;
+  }
 }
 
 .btn-animate-chars__bg {
@@ -276,10 +272,6 @@ export default {
   transition-duration: var(--btn-dur, 0.6s);
   transition-timing-function: var(--btn-ease, cubic-bezier(0.625, 0.05, 0, 1));
   will-change: inset;
-}
-
-.btn-animate-chars:hover .btn-animate-chars__bg {
-  inset: 0.125em;
 }
 
 .btn-animate-chars:focus-visible {

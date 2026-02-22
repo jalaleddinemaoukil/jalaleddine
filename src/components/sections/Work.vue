@@ -47,12 +47,25 @@
       </a>
     </nav>
 
+    <div class="link-container">
+      <Button
+        tag="a"
+        href="/works"
+        label="View All Projects"
+        customClass="view-all-btn"
+        :staggerDelay="0.02"
+        :animationDuration="0.5"
+        :animationEasing="'cubic-bezier(0.22, 1, 0.36, 1)'"
+      />
+    </div>
+
 
   </section>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import Button from '../base/Button.vue'
 
 const props = defineProps({
   items: { type: Array, default: () => [] }
@@ -206,6 +219,22 @@ const formatOrder = i => String(i + 1).padStart(2, '0')
 .work__item:hover .slide-text--a { transform: translateY(-100%); }
 .work__item:hover .slide-text--b { transform: translateY(0%); }
 
+
+.link-container {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .work {
+    min-height: unset;
+  }
+
+  .link-container {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(40px, 10vw, 64px);
+  }
+}
 
 .work__item-thumb {
   display: none; 

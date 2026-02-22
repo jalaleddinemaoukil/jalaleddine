@@ -301,7 +301,7 @@ export default {
   flex-direction: column;
   align-items: center;
   line-height: 1.08;
-  padding: 0 1rem;
+  padding: 0 var(--gutter);
 }
 
 .line {
@@ -413,27 +413,36 @@ export default {
 }
 
 .retro-frame__slide img {
-  width: auto;
+  width: 100%;
   height: 100%;
-  max-width: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   display: block;
 }
 
 @media (max-width: 640px) {
+  .hero {
+    padding-top: clamp(3rem, 8svh, 5rem);
+    padding-bottom: clamp(3rem, 8svh, 5rem);
+    box-sizing: border-box;
+  }
+
   .hero__type {
-    line-height: 1.16;
+    line-height: 1.2;
+    /* breathing room between lines */
+    gap: clamp(0.3rem, 2vw, 0.55rem);
   }
 
   .line--3 {
     max-width: 100%;
+    /* flip the desktop negative pull to a positive gap on mobile */
+    margin: clamp(0.25rem, 1.5vw, 0.5rem) 0;
   }
 
-  .line3-center { gap: 0.22rem; }
+  .line3-center { gap: clamp(0.18rem, 1.2vw, 0.4rem); }
 
   .retro-frame {
-    width: clamp(160px, 46vw, 260px);
+    width: clamp(90px, 22vw, 160px);
     aspect-ratio: 16 / 10;
   }
 
@@ -444,6 +453,17 @@ export default {
 
   .line3-label {
     display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  /* At 320-360px the mark overflows its ~9px side column — hide it */
+  .line3-mark {
+    display: none;
+  }
+
+  .retro-frame {
+    width: clamp(72px, 20vw, 100px);
   }
 }
 
