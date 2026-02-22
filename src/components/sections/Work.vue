@@ -38,7 +38,7 @@
     <div class="link-container">
       <Button tag="a" href="/works" customClass="view-all-btn" :staggerDelay="0.02" :animationDuration="0.5"
         :animationEasing="'cubic-bezier(0.22, 1, 0.36, 1)'">
-        Learn More
+        See All Works
       </Button>
     </div>
 
