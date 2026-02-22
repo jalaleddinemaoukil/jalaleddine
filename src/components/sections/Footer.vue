@@ -87,7 +87,7 @@
               © 2026 Jalal Eddine Maoukil. All rights reserved.
             </RevealText>
             <RouterLink class="site-footer__legal-link" to="/privacy-policy" aria-label="Privacy Policy">
-              <RevealText tag="span" :scroll="true" splitReveal="words">Privacy Policy</RevealText>
+              <RevealText tag="span" :scroll="true" splitReveal="words">Privacy Notice</RevealText>
             </RouterLink>
           </div>
         </div>
