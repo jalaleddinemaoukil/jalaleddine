@@ -292,23 +292,21 @@ const handleLinkClick = (event, item) => {
 };
 
 const handleBrandClick = (event) => {
-  const href = props.brandHref || "/#hero";
-  const isHome = route.path === "/";
-  const targetHash = href.includes("#") ? `#${href.split("#")[1] || "hero"}` : "#hero";
+  const href = props.brandHref || '/';
+  const isHome = route.path === '/';
 
   event?.preventDefault?.();
 
   if (isHome) {
-    const el = document.querySelector(targetHash);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-      return;
+    if (window.__lenis) {
+      window.__lenis.scrollTo(0, { duration: 1.1, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    router.push({ path: "/", hash: targetHash });
     return;
   }
 
-  router.push({ path: "/", hash: targetHash });
+  router.push({ path: '/' });
 };
 
 onMounted(() => {

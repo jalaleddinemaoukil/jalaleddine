@@ -422,6 +422,7 @@ export default {
 
 @media (max-width: 640px) {
   .hero {
+    min-height: auto;
     padding-top: clamp(3rem, 8svh, 5rem);
     padding-bottom: clamp(3rem, 8svh, 5rem);
     box-sizing: border-box;

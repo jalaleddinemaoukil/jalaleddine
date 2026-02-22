@@ -51,7 +51,7 @@
       <Button
         tag="a"
         href="/works"
-        label="View All Projects"
+        label="Learn More"
         customClass="view-all-btn"
         :staggerDelay="0.02"
         :animationDuration="0.5"
