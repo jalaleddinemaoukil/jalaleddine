@@ -31,31 +31,9 @@ hydrateInitialState();
 
 const scrollBehavior = (to, from, savedPosition) => {
   if (savedPosition) return savedPosition;
-  if (to.hash) {
-    return new Promise((resolve) => {
-      const target = to.hash;
-      let attempts = 0;
-      const maxAttempts = 60;
-
-      const tryScroll = () => {
-        const el = document.querySelector(target);
-        if (el) {
-          resolve({ el: target, behavior: "smooth" });
-          return;
-        }
-
-        if (attempts >= maxAttempts) {
-          resolve({ top: 0, left: 0, behavior: "auto" });
-          return;
-        }
-
-        attempts += 1;
-        requestAnimationFrame(tryScroll);
-      };
-
-      tryScroll();
-    });
-  }
+  // Hash scrolling is handled via Lenis in router.afterEach to avoid
+  // conflicts between native scrollIntoView and Lenis's virtual scroll.
+  if (to.hash) return false;
   return { top: 0, left: 0, behavior: "auto" };
 };
 
@@ -125,9 +103,28 @@ export const createApp = ViteSSG(
           requestAnimationFrame(forceScrollTop);
           window.setTimeout(forceScrollTop, 90);
         } else {
-          window.requestAnimationFrame(() => {
-            window.__lenis?.resize?.();
-          });
+          // Hash navigation: use Lenis to scroll so it stays in sync.
+          const hash = to.hash;
+          let attempts = 0;
+          const maxAttempts = 80;
+
+          const tryLenisScroll = () => {
+            const el = document.querySelector(hash);
+            if (el) {
+              window.__lenis?.resize?.();
+              if (window.__lenis) {
+                window.__lenis.scrollTo(el, { offset: 0, duration: 1.1, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+              } else {
+                el.scrollIntoView({ behavior: "smooth" });
+              }
+              return;
+            }
+            if (attempts >= maxAttempts) return;
+            attempts += 1;
+            requestAnimationFrame(tryLenisScroll);
+          };
+
+          requestAnimationFrame(tryLenisScroll);
         }
 
         requestAnimationFrame(() => {
