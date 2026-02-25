@@ -22,7 +22,8 @@ export default defineConfig(({ mode }) => {
         "/api/sanity": {
           target: `https://${projectId}.${apiHost}`,
           changeOrigin: true,
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          secure: true,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
           rewrite: (path) =>
             path.replace(/^\/api\/sanity/, `/v${apiVersion}/data/query/${dataset}`),
         },
@@ -31,6 +32,14 @@ export default defineConfig(({ mode }) => {
     build: {
       cssCodeSplit: true,
       minify: "esbuild",
+      target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"],
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules/lenis/")) return "lenis";
+          },
+        },
+      },
     },
   };
 });

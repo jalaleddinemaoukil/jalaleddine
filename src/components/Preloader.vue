@@ -64,28 +64,24 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount } from "vue";
-import profile320 from "../assets/images/profile-320.webp";
-import profile480 from "../assets/images/profile-480.webp";
-import profile640 from "../assets/images/profile-640.webp";
-import profile800 from "../assets/images/profile-800.webp";
 
 const PRELOADER_CONFIG = {
-  ENTER_MS: 1200,
-  PROGRESS_MS: 1600,
-  HOLD_MS: 450,
-  EXIT_MS: 900,
-  MAX_TOTAL_MS: 6500,
+  ENTER_MS: 800,
+  PROGRESS_MS: 1100,
+  HOLD_MS: 150,
+  EXIT_MS: 650,
+  MAX_TOTAL_MS: 5000,
   SESSION_KEY: "preloaderShown_v7",
   SKIP_ON_CLIENT_SWAPS: true,
 };
 
 const CONFIG_JSON = JSON.stringify(PRELOADER_CONFIG);
-const profileImageSrc = profile640;
+const profileImageSrc = "/images/profile-640.webp";
 const profileImageSrcSet = [
-  `${profile320} 320w`,
-  `${profile480} 480w`,
-  `${profile640} 640w`,
-  `${profile800} 800w`,
+  "/images/profile-320.webp 320w",
+  "/images/profile-480.webp 480w",
+  "/images/profile-640.webp 640w",
+  "/images/profile-800.webp 800w",
 ].join(", ");
 
 onMounted(() => {

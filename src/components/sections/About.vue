@@ -448,6 +448,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .about {
   position: relative;
+  align-items: center;
+  justify-items: center;
   z-index: 10;
   background: var(--color-white);
   color: var(--color-ink);
@@ -519,7 +521,7 @@ onBeforeUnmount(() => {
 
 .about__grid {
   display: grid;
-  grid-template-columns: 40% 60%;
+  grid-template-columns: 50% 50%;
   gap: clamp(3rem, 5vw, 7rem);
   align-items: center;
 }
