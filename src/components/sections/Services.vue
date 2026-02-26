@@ -152,7 +152,7 @@ function initScrollCards() {
 }
 
 function onCardAction(index) {
-  console.log("Card action:", services[index].title);
+  // TODO: implement card action for services[index]
 }
 </script>
 

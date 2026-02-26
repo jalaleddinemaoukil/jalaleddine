@@ -460,7 +460,7 @@ onMounted(() => {
         ">-0.05",
       );
     })().catch((err) => {
-      console.error("[Preloader] error:", err);
+      if (import.meta.env.DEV) console.error("[Preloader] error:", err);
       window.clearTimeout(timeoutId);
       finish("error");
     });
